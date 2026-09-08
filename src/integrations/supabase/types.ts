@@ -16,7 +16,9 @@ export type Database = {
     Tables: {
       payment_orders: {
         Row: {
+          activation_code: string | null
           amount_minor: number
+          apn: string | null
           confirmation_code: string | null
           country: string
           created_at: string
@@ -26,17 +28,27 @@ export type Database = {
           customer_last_name: string
           customer_phone: string
           data_allowance: string
+          esim_transaction_no: string | null
+          fulfilled_at: string | null
+          fulfillment_error: string | null
+          fulfillment_status: string
+          iccid: string | null
           id: string
           merchant_reference: string
           payment_method: string | null
           pesapal_order_tracking_id: string | null
+          plan_id: string | null
           provider_status_description: string | null
+          qr_code_url: string | null
           status: string
+          supplier_order_no: string | null
           updated_at: string
           validity_days: number
         }
         Insert: {
+          activation_code?: string | null
           amount_minor: number
+          apn?: string | null
           confirmation_code?: string | null
           country: string
           created_at?: string
@@ -46,17 +58,27 @@ export type Database = {
           customer_last_name: string
           customer_phone: string
           data_allowance: string
+          esim_transaction_no?: string | null
+          fulfilled_at?: string | null
+          fulfillment_error?: string | null
+          fulfillment_status?: string
+          iccid?: string | null
           id?: string
           merchant_reference: string
           payment_method?: string | null
           pesapal_order_tracking_id?: string | null
+          plan_id?: string | null
           provider_status_description?: string | null
+          qr_code_url?: string | null
           status?: string
+          supplier_order_no?: string | null
           updated_at?: string
           validity_days: number
         }
         Update: {
+          activation_code?: string | null
           amount_minor?: number
+          apn?: string | null
           confirmation_code?: string | null
           country?: string
           created_at?: string
@@ -66,12 +88,20 @@ export type Database = {
           customer_last_name?: string
           customer_phone?: string
           data_allowance?: string
+          esim_transaction_no?: string | null
+          fulfilled_at?: string | null
+          fulfillment_error?: string | null
+          fulfillment_status?: string
+          iccid?: string | null
           id?: string
           merchant_reference?: string
           payment_method?: string | null
           pesapal_order_tracking_id?: string | null
+          plan_id?: string | null
           provider_status_description?: string | null
+          qr_code_url?: string | null
           status?: string
+          supplier_order_no?: string | null
           updated_at?: string
           validity_days?: number
         }
