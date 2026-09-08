@@ -289,6 +289,7 @@ function Trust() {
 
 function Compatibility() {
   const { devices } = Route.useLoaderData();
+  const deviceList = devices ?? [];
   const [query, setQuery] = useState("");
   const [hint, setHint] = useState<DeviceHint | null>(null);
   useEffect(() => {
@@ -296,8 +297,8 @@ function Compatibility() {
   }, []);
   const term = query.trim().toLowerCase();
   const matches = useMemo(
-    () => (term.length < 2 ? devices : devices.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
-    [term, devices],
+    () => (term.length < 2 ? deviceList : deviceList.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
+    [term, deviceList],
   );
   return (
     <section id="compatibility" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
