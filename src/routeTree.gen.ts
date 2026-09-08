@@ -17,6 +17,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as MyEsimRouteImport } from './routes/my-esim'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminDevicesRouteImport } from './routes/_authenticated/admin.devices'
 import { Route as AuthenticatedAdminIntegrationsRouteImport } from './routes/_authenticated/admin.integrations'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
 import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin.packages'
@@ -63,6 +64,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminDevicesRoute =
+  AuthenticatedAdminDevicesRouteImport.update({
+    id: '/devices',
+    path: '/devices',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminIntegrationsRoute =
   AuthenticatedAdminIntegrationsRouteImport.update({
     id: '/integrations',
@@ -105,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/admin/devices': typeof AuthenticatedAdminDevicesRoute
   '/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -119,6 +127,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
+  '/admin/devices': typeof AuthenticatedAdminDevicesRoute
   '/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -136,6 +145,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/admin/devices': typeof AuthenticatedAdminDevicesRoute
   '/_authenticated/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/my-esim'
     | '/admin'
+    | '/admin/devices'
     | '/admin/integrations'
     | '/admin/orders'
     | '/admin/packages'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkout'
     | '/my-esim'
+    | '/admin/devices'
     | '/admin/integrations'
     | '/admin/orders'
     | '/admin/packages'
@@ -183,6 +195,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/my-esim'
     | '/_authenticated/admin'
+    | '/_authenticated/admin/devices'
     | '/_authenticated/admin/integrations'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/packages'
@@ -261,6 +274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/devices': {
+      id: '/_authenticated/admin/devices'
+      path: '/devices'
+      fullPath: '/admin/devices'
+      preLoaderRoute: typeof AuthenticatedAdminDevicesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/integrations': {
       id: '/_authenticated/admin/integrations'
       path: '/integrations'
@@ -307,6 +327,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminDevicesRoute: typeof AuthenticatedAdminDevicesRoute
   AuthenticatedAdminIntegrationsRoute: typeof AuthenticatedAdminIntegrationsRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminPackagesRoute: typeof AuthenticatedAdminPackagesRoute
@@ -315,6 +336,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminDevicesRoute: AuthenticatedAdminDevicesRoute,
   AuthenticatedAdminIntegrationsRoute: AuthenticatedAdminIntegrationsRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedAdminPackagesRoute: AuthenticatedAdminPackagesRoute,

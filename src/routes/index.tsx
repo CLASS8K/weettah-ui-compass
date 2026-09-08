@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Check, CreditCard, Loader2, LockKeyhole, Menu, Search, ShieldCheck, Smartphone, X } from "lucide-react";
 import heroImage from "@/assets/weettah-africa-hero.jpg";
@@ -10,14 +10,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { faqs, regions, stats, steps, supportedDevices, trustPoints, unsupportedNote } from "@/components/site/data";
+import { faqs, regions, stats, steps, trustPoints, unsupportedNote } from "@/components/site/data";
 import { cn } from "@/lib/utils";
+import { detectDevice, type DeviceHint } from "@/lib/device-detect";
 import { beginCheckout } from "@/lib/payments.functions";
+import { getSupportedDevices } from "@/lib/devices.functions";
 import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
 
 
 export const Route = createFileRoute("/")({
-  loader: () => getPublicPlans(),
+  loader: async () => ({ plans: await getPublicPlans(), devices: await getSupportedDevices() }),
   head: () => ({
     meta: [
       { title: "Weettah — Africa-first travel eSIM" },
@@ -130,7 +132,7 @@ function Steps() {
 }
 
 function Plans() {
-  const plans = Route.useLoaderData();
+  const { plans } = Route.useLoaderData();
   const [region, setRegion] = useState("All");
   const [query, setQuery] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -285,31 +287,48 @@ function Trust() {
 }
 
 function Compatibility() {
+  const { devices } = Route.useLoaderData();
   const [query, setQuery] = useState("");
+  const [hint, setHint] = useState<DeviceHint | null>(null);
+  useEffect(() => {
+    setHint(detectDevice(navigator.userAgent));
+  }, []);
   const term = query.trim().toLowerCase();
   const matches = useMemo(
-    () => (term.length < 2 ? supportedDevices : supportedDevices.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
-    [term],
+    () => (term.length < 2 ? devices : devices.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
+    [term, devices],
   );
   return (
     <section id="compatibility" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
       <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-        <SectionHead label="Before you pay" title="Will it work on your phone?" body="Search your phone below. Buying an eSIM your phone can't use is the one mistake we'd rather you never make." />
+        <SectionHead label="Before you pay" title="Will it work on your phone?" body="We take a first guess from the phone you're browsing on, then you can search to be sure. Buying an eSIM your phone can't use is the one mistake we'd rather you never make." />
         <div className="relative w-full lg:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="e.g. iPhone 13, Galaxy S22" aria-label="Search your phone model" className="h-12 pl-10" />
         </div>
       </div>
+      {hint && (
+        <div className={cn("mt-10 flex flex-col gap-3 rounded-lg border p-6 sm:flex-row sm:items-start", hint.verdict === "likely" ? "border-accent/40 bg-accent/5" : "border-border")}>
+          {hint.verdict === "likely" ? <Check className="mt-0.5 shrink-0 text-accent" /> : <Smartphone className="mt-0.5 shrink-0 text-muted-foreground" />}
+          <div>
+            <h3 className="font-bold">{hint.verdict === "likely" ? `Good news — your ${hint.name} should work` : `You're browsing on: ${hint.name}`}</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{hint.note}</p>
+            {hint.search && hint.search !== query && (
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => setQuery(hint.search)}>Check {hint.search} in the list</Button>
+            )}
+          </div>
+        </div>
+      )}
       {matches.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-border p-6">
+        <div className="mt-6 rounded-lg border border-border p-6">
           <h3 className="font-bold">We can't confirm that one from the name alone</h3>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{unsupportedNote}</p>
         </div>
       ) : (
         <>
-          <ul className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
+          <ul className="mt-6 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
             {matches.map((item) => (
-              <li key={item.brand} className="bg-background p-6">
+              <li key={item.id} className="bg-background p-6">
                 <div className="flex items-center gap-2">
                   <Check className="text-primary" />
                   <h3 className="text-lg font-bold">{item.brand}</h3>

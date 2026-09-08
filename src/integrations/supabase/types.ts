@@ -197,6 +197,36 @@ export type Database = {
         }
         Relationships: []
       }
+      supported_devices: {
+        Row: {
+          brand: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          models: string
+          updated_at: string
+        }
+        Insert: {
+          brand: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          models: string
+          updated_at?: string
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          models?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

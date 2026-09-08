@@ -322,3 +322,43 @@ export const exportAdminOrders = createServerFn({ method: "POST" })
     }
     return { filename: `weettah-orders-${new Date().toISOString().slice(0, 10)}.csv`, csv: lines.join("\n"), rows: orders?.length ?? 0 };
   });
+
+export const listAdminDevices = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    const { data, error } = await supabaseAdmin.from("supported_devices").select("*").order("display_order");
+    if (error) throw new Error("Unable to load devices");
+    return data;
+  });
+
+const deviceInput = z.object({
+  id: z.string().uuid().optional(),
+  brand: z.string().min(1).max(80),
+  models: z.string().min(1).max(1200),
+  isActive: z.boolean(),
+  displayOrder: z.number().int().min(0).max(10000),
+});
+
+export const saveAdminDevice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => deviceInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    const row = { brand: data.brand.trim(), models: data.models.trim(), is_active: data.isActive, display_order: data.displayOrder };
+    const { error } = data.id
+      ? await supabaseAdmin.from("supported_devices").update(row).eq("id", data.id)
+      : await supabaseAdmin.from("supported_devices").insert(row);
+    if (error) throw new Error("Unable to save device");
+    return { ok: true };
+  });
+
+export const deleteAdminDevice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    const { error } = await supabaseAdmin.from("supported_devices").delete().eq("id", data.id);
+    if (error) throw new Error("Unable to remove device");
+    return { ok: true };
+  });
