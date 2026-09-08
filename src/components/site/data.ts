@@ -16,14 +16,14 @@ export type Plan = {
 };
 
 export const plans: Plan[] = [
-  { country: "United States", flag: "🇺🇸", region: "North America", data: "5 GB", days: 30, price: "$12.50", popular: true },
+  { country: "South Africa", flag: "🇿🇦", region: "Africa", data: "3 GB", days: 30, price: "$9.60", popular: true },
+  { country: "Kenya", flag: "🇰🇪", region: "Africa", data: "5 GB", days: 30, price: "$11.80", popular: true },
+  { country: "Nigeria", flag: "🇳🇬", region: "Africa", data: "3 GB", days: 30, price: "$10.20" },
+  { country: "Ghana", flag: "🇬🇭", region: "Africa", data: "5 GB", days: 30, price: "$12.40" },
   { country: "United Kingdom", flag: "🇬🇧", region: "Europe", data: "3 GB", days: 15, price: "$8.90" },
+  { country: "United States", flag: "🇺🇸", region: "North America", data: "5 GB", days: 30, price: "$12.50" },
+  { country: "United Arab Emirates", flag: "🇦🇪", region: "Middle East", data: "5 GB", days: 15, price: "$14.20" },
   { country: "Japan", flag: "🇯🇵", region: "Asia", data: "10 GB", days: 30, price: "$19.40" },
-  { country: "South Africa", flag: "🇿🇦", region: "Africa", data: "3 GB", days: 30, price: "$9.60" },
-  { country: "United Arab Emirates", flag: "🇦🇪", region: "Middle East", data: "5 GB", days: 15, price: "$14.20", popular: true },
-  { country: "Europe Regional", flag: "🇪🇺", region: "Europe", data: "10 GB", days: 30, price: "$22.00" },
-  { country: "Kenya", flag: "🇰🇪", region: "Africa", data: "5 GB", days: 30, price: "$11.80" },
-  { country: "Thailand", flag: "🇹🇭", region: "Asia", data: "8 GB", days: 15, price: "$13.30" },
 ];
 
 export const regions = ["All", "Africa", "Asia", "Europe", "North America", "Middle East"];
