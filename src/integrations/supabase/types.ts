@@ -17,6 +17,7 @@ export type Database = {
       payment_orders: {
         Row: {
           activation_code: string | null
+          activation_token: string
           amount_minor: number
           apn: string | null
           confirmation_code: string | null
@@ -47,6 +48,7 @@ export type Database = {
         }
         Insert: {
           activation_code?: string | null
+          activation_token?: string
           amount_minor: number
           apn?: string | null
           confirmation_code?: string | null
@@ -77,6 +79,7 @@ export type Database = {
         }
         Update: {
           activation_code?: string | null
+          activation_token?: string
           amount_minor?: number
           apn?: string | null
           confirmation_code?: string | null
