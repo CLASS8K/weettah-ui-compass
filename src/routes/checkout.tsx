@@ -10,9 +10,9 @@ type Result = Awaited<ReturnType<typeof checkPayment>>;
 
 export const Route = createFileRoute("/checkout")({
   validateSearch: (search: Record<string, unknown>) => ({
-    OrderTrackingId: typeof search.OrderTrackingId === "string" ? search.OrderTrackingId : undefined,
-    OrderMerchantReference: typeof search.OrderMerchantReference === "string" ? search.OrderMerchantReference : undefined,
-    cancelled: search.cancelled === "true",
+    OrderTrackingId: typeof search["OrderTrackingId"] === "string" ? search["OrderTrackingId"] : undefined,
+    OrderMerchantReference: typeof search["OrderMerchantReference"] === "string" ? search["OrderMerchantReference"] : undefined,
+    cancelled: search["cancelled"] === "true",
   }),
   head: () => ({
     meta: [

@@ -8,6 +8,8 @@ type Customer = {
 };
 
 type PesapalStatus = {
+  amount?: number;
+  currency?: string;
   payment_method?: string;
   confirmation_code?: string;
   payment_status_description?: string;
@@ -135,14 +137,18 @@ export async function verifyPesapalOrder(orderTrackingId: string, merchantRefere
     .eq("pesapal_order_tracking_id", orderTrackingId)
     .maybeSingle();
   if (!order) throw new Error("Order not found");
+  if (result.currency !== order.currency || Math.round((result.amount ?? -1) * 100) !== order.amount_minor) {
+    throw new Error("Payment amount mismatch");
+  }
 
   const status = mapStatus(result.status_code);
-  await supabaseAdmin.from("payment_orders").update({
+  const { error: updateError } = await supabaseAdmin.from("payment_orders").update({
     status,
     payment_method: result.payment_method || null,
     confirmation_code: result.confirmation_code || null,
     provider_status_description: result.payment_status_description || null,
   }).eq("merchant_reference", order.merchant_reference);
+  if (updateError) throw new Error("Unable to save payment status");
 
   return {
     status,
