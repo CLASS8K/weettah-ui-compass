@@ -51,9 +51,46 @@ function DestinationNotFound() {
 }
 
 function DestinationPage() {
-  const { destination, related } = Route.useLoaderData();
+  const { destination, related, guide } = Route.useLoaderData();
   const [selectedPlan, setSelectedPlan] = useState<PublicPlan | null>(null);
   if (!destination) return <DestinationNotFound />;
+
+  const pageFaqs = [...(guide?.faqs ?? []), ...faqs];
+  const facts = [
+    { label: "Capital", value: guide?.capital },
+    { label: "Currency", value: guide?.currency },
+    { label: "Languages", value: guide?.languages },
+    { label: "Power plug", value: guide?.powerPlug },
+    { label: "Emergency number", value: guide?.emergencyNumber },
+    { label: "Best time to visit", value: guide?.bestTime },
+  ].filter((fact) => Boolean(fact.value));
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        mainEntity: pageFaqs.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
+      },
+      {
+        "@type": "Product",
+        name: `${destination.country} travel eSIM`,
+        description: guide?.intro || `Prepaid travel data for ${destination.country} from Weettah.`,
+        brand: { "@type": "Brand", name: "Weettah" },
+        offers: destination.plans.map((plan) => ({
+          "@type": "Offer",
+          name: `${plan.data} · ${plan.days} days`,
+          price: (plan.amountMinor / 100).toFixed(2),
+          priceCurrency: plan.currency,
+          availability: "https://schema.org/InStock",
+        })),
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +108,9 @@ function DestinationPage() {
             <p className="mt-8 text-5xl" aria-hidden>{destination.flag}</p>
             <h1 className="mt-4 max-w-3xl text-4xl font-extrabold leading-tight sm:text-6xl">{destination.country} travel eSIM</h1>
             <p className="mt-5 max-w-2xl leading-relaxed text-secondary-foreground/80">
-              Land in {destination.country} already online. Install before you fly, keep your usual number for calls and messages, and pay one clear price from {destination.fromPrice} — no roaming bills waiting when you get home.
+              {guide?.intro
+                ? guide.intro
+                : `Land in ${destination.country} already online. Install before you fly, keep your usual number for calls and messages, and pay one clear price from ${destination.fromPrice} — no roaming bills waiting when you get home.`}
             </p>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold">
               <span className="flex items-center gap-2"><Check className="text-surface" />Keep your number</span>
@@ -80,6 +119,49 @@ function DestinationPage() {
             </div>
           </div>
         </section>
+
+        {(guide?.coverage || facts.length > 0 || (guide?.tips?.length ?? 0) > 0) && (
+          <section className="border-b border-border bg-surface">
+            <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-20">
+              <div>
+                {guide?.coverage && (
+                  <>
+                    <SectionHead label="Coverage" title={`Which networks you'll use in ${destination.country}`} />
+                    <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">{guide.coverage}</p>
+                  </>
+                )}
+                {(guide?.tips?.length ?? 0) > 0 && (
+                  <>
+                    <h3 className="mt-12 text-xl font-bold">Local tips worth knowing</h3>
+                    <ul className="mt-5 space-y-4 border-t border-border pt-5">
+                      {guide!.tips.map((tip) => (
+                        <li key={tip} className="flex gap-3 leading-relaxed text-muted-foreground">
+                          <Check className="mt-1 shrink-0 text-primary" />
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+              {facts.length > 0 && (
+                <aside className="h-fit rounded-lg border border-border bg-background p-6">
+                  <h2 className="text-xs font-bold uppercase text-primary">{destination.country} at a glance</h2>
+                  <dl className="mt-5 divide-y divide-border">
+                    {facts.map((fact) => (
+                      <div key={fact.label} className="flex justify-between gap-6 py-3 text-sm">
+                        <dt className="text-muted-foreground">{fact.label}</dt>
+                        <dd className="text-right font-semibold">{fact.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </aside>
+              )}
+            </div>
+          </section>
+        )}
+
+
 
         <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
           <SectionHead label="Plans" title={`Data plans for ${destination.country}`} body="One-off payment. Top up anytime if the data runs out — nothing renews on its own." />
@@ -126,7 +208,7 @@ function DestinationPage() {
         <section className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-[0.75fr_1.25fr] lg:px-8 lg:py-20">
           <SectionHead label="Good to know" title="Questions before you buy" />
           <Accordion type="single" collapsible>
-            {faqs.map((item) => (
+            {pageFaqs.map((item) => (
               <AccordionItem key={item.q} value={item.q}>
                 <AccordionTrigger className="py-5 text-left text-base font-bold hover:no-underline">{item.q}</AccordionTrigger>
                 <AccordionContent className="max-w-2xl pb-5 leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
@@ -151,6 +233,7 @@ function DestinationPage() {
             </div>
           </section>
         )}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </main>
       <Footer />
       <CheckoutDialog plan={selectedPlan} open={selectedPlan !== null} onOpenChange={(open) => { if (!open) setSelectedPlan(null); }} />

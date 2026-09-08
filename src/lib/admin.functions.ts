@@ -362,3 +362,66 @@ export const deleteAdminDevice = createServerFn({ method: "POST" })
     if (error) throw new Error("Unable to remove device");
     return { ok: true };
   });
+
+export const listAdminDestinationContent = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    const { data, error } = await supabaseAdmin.from("destination_content").select("*").order("country");
+    if (error) throw new Error("Unable to load destination guides");
+    return data;
+  });
+
+const guideInput = z.object({
+  id: z.string().uuid().optional(),
+  slug: z.string().min(1).max(80).regex(/^[a-z0-9-]+$/),
+  country: z.string().min(1).max(80),
+  intro: z.string().max(4000),
+  coverage: z.string().max(4000),
+  capital: z.string().max(120),
+  currency: z.string().max(120),
+  languages: z.string().max(200),
+  powerPlug: z.string().max(120),
+  emergencyNumber: z.string().max(120),
+  bestTime: z.string().max(200),
+  tips: z.array(z.string().max(400)).max(10),
+  faqs: z.array(z.object({ q: z.string().min(1).max(200), a: z.string().min(1).max(1200) })).max(10),
+  isPublished: z.boolean(),
+});
+
+export const saveAdminDestinationContent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => guideInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    const row = {
+      slug: data.slug.trim(),
+      country: data.country.trim(),
+      intro: data.intro.trim(),
+      coverage: data.coverage.trim(),
+      capital: data.capital.trim(),
+      currency: data.currency.trim(),
+      languages: data.languages.trim(),
+      power_plug: data.powerPlug.trim(),
+      emergency_number: data.emergencyNumber.trim(),
+      best_time: data.bestTime.trim(),
+      tips: data.tips.map((tip) => tip.trim()).filter(Boolean),
+      local_faqs: data.faqs,
+      is_published: data.isPublished,
+    };
+    const { error } = data.id
+      ? await supabaseAdmin.from("destination_content").update(row).eq("id", data.id)
+      : await supabaseAdmin.from("destination_content").insert(row);
+    if (error) throw new Error("Unable to save destination guide");
+    return { ok: true };
+  });
+
+export const deleteAdminDestinationContent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    const { error } = await supabaseAdmin.from("destination_content").delete().eq("id", data.id);
+    if (error) throw new Error("Unable to remove destination guide");
+    return { ok: true };
+  });

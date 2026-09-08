@@ -93,6 +93,54 @@ export const getDestinations = createServerFn({ method: "GET" }).handler(async (
   groupDestinations(await loadActivePlans()),
 );
 
+export type DestinationGuide = {
+  intro: string;
+  coverage: string;
+  capital: string;
+  currency: string;
+  languages: string;
+  powerPlug: string;
+  emergencyNumber: string;
+  bestTime: string;
+  tips: string[];
+  faqs: { q: string; a: string }[];
+};
+
+function toStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function toFaqArray(value: unknown): { q: string; a: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is { q: string; a: string } =>
+      typeof item === "object" && item !== null && typeof (item as any).q === "string" && typeof (item as any).a === "string")
+    .map((item) => ({ q: item.q, a: item.a }));
+}
+
+async function loadGuide(slug: string): Promise<DestinationGuide | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("destination_content")
+    .select("*")
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    intro: data.intro ?? "",
+    coverage: data.coverage ?? "",
+    capital: data.capital ?? "",
+    currency: data.currency ?? "",
+    languages: data.languages ?? "",
+    powerPlug: data.power_plug ?? "",
+    emergencyNumber: data.emergency_number ?? "",
+    bestTime: data.best_time ?? "",
+    tips: toStringArray(data.tips),
+    faqs: toFaqArray(data.local_faqs),
+  };
+}
+
 export const getDestination = createServerFn({ method: "GET" })
   .inputValidator((data: { slug: string }) => ({ slug: slugify(String(data?.slug ?? "")) }))
   .handler(async ({ data }) => {
@@ -101,5 +149,6 @@ export const getDestination = createServerFn({ method: "GET" })
     const related = destination
       ? all.filter((item) => item.slug !== destination.slug && item.region === destination.region).slice(0, 4)
       : [];
-    return { destination, related };
+    const guide = destination ? await loadGuide(destination.slug) : null;
+    return { destination, related, guide };
   });
