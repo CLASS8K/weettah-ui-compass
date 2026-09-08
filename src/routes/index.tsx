@@ -132,7 +132,7 @@ function Steps() {
 }
 
 function Plans() {
-  const plans = Route.useLoaderData();
+  const { plans } = Route.useLoaderData();
   const [region, setRegion] = useState("All");
   const [query, setQuery] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
