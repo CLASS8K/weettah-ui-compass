@@ -133,10 +133,11 @@ function Steps() {
 
 function Plans() {
   const { plans } = Route.useLoaderData();
+  const planList = plans ?? [];
   const [region, setRegion] = useState("All");
   const [query, setQuery] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const visible = useMemo(() => plans.filter((plan) => (region === "All" || plan.region === region) && plan.country.toLowerCase().includes(query.trim().toLowerCase())), [region, query]);
+  const visible = useMemo(() => planList.filter((plan) => (region === "All" || plan.region === region) && plan.country.toLowerCase().includes(query.trim().toLowerCase())), [planList, region, query]);
   return (
     <section id="destinations" className="bg-secondary text-secondary-foreground">
       <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
