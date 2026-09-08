@@ -120,6 +120,49 @@ function DestinationPage() {
           </div>
         </section>
 
+        {(guide?.coverage || facts.length > 0 || (guide?.tips?.length ?? 0) > 0) && (
+          <section className="border-b border-border bg-surface">
+            <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-20">
+              <div>
+                {guide?.coverage && (
+                  <>
+                    <SectionHead label="Coverage" title={`Which networks you'll use in ${destination.country}`} />
+                    <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">{guide.coverage}</p>
+                  </>
+                )}
+                {(guide?.tips?.length ?? 0) > 0 && (
+                  <>
+                    <h3 className="mt-12 text-xl font-bold">Local tips worth knowing</h3>
+                    <ul className="mt-5 space-y-4 border-t border-border pt-5">
+                      {guide!.tips.map((tip) => (
+                        <li key={tip} className="flex gap-3 leading-relaxed text-muted-foreground">
+                          <Check className="mt-1 shrink-0 text-primary" />
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+              {facts.length > 0 && (
+                <aside className="h-fit rounded-lg border border-border bg-background p-6">
+                  <h2 className="text-xs font-bold uppercase text-primary">{destination.country} at a glance</h2>
+                  <dl className="mt-5 divide-y divide-border">
+                    {facts.map((fact) => (
+                      <div key={fact.label} className="flex justify-between gap-6 py-3 text-sm">
+                        <dt className="text-muted-foreground">{fact.label}</dt>
+                        <dd className="text-right font-semibold">{fact.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </aside>
+              )}
+            </div>
+          </section>
+        )}
+
+
+
         <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
           <SectionHead label="Plans" title={`Data plans for ${destination.country}`} body="One-off payment. Top up anytime if the data runs out — nothing renews on its own." />
           <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
