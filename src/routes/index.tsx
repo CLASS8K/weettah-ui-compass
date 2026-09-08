@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Check, CreditCard, Loader2, LockKeyhole, Menu, Search, ShieldCheck, Smartphone, X } from "lucide-react";
 import heroImage from "@/assets/weettah-africa-hero.jpg";
@@ -10,14 +10,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { faqs, regions, stats, steps, supportedDevices, trustPoints, unsupportedNote } from "@/components/site/data";
+import { faqs, regions, stats, steps, trustPoints, unsupportedNote } from "@/components/site/data";
 import { cn } from "@/lib/utils";
+import { detectDevice, type DeviceHint } from "@/lib/device-detect";
 import { beginCheckout } from "@/lib/payments.functions";
+import { getSupportedDevices } from "@/lib/devices.functions";
 import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
 
 
 export const Route = createFileRoute("/")({
-  loader: () => getPublicPlans(),
+  loader: async () => ({ plans: await getPublicPlans(), devices: await getSupportedDevices() }),
   head: () => ({
     meta: [
       { title: "Weettah — Africa-first travel eSIM" },
