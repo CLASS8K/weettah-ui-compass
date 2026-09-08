@@ -68,3 +68,21 @@ export const faqs = [
     a: "If your eSIM hasn't been activated, you can request a full refund within 30 days of purchase. If it's activated but not working, our support team will troubleshoot with you and refund if we can't fix it.",
   },
 ];
+
+export const trustPoints = [
+  { title: "30-day refund if unused", body: "Haven't activated your eSIM? Ask for a full refund within 30 days, no questions." },
+  { title: "Pay the way you already pay", body: "Mobile money, Visa and Mastercard. Card details are handled by our payment partner, never stored by us." },
+  { title: "Delivered in about a minute", body: "Your install page opens right after payment, and stays available from Find my eSIM." },
+  { title: "Real people on support", body: "Email support@weettah.com and a person replies — no bots, no ticket maze." },
+];
+
+export const supportedDevices = [
+  { brand: "Apple", models: "iPhone XS, XS Max, XR and every iPhone since (11, 12, 13, 14, 15, 16, SE 3rd gen), iPad Pro 3rd gen and newer" },
+  { brand: "Samsung", models: "Galaxy S20 and newer, Z Flip and Z Fold (all), Note 20, A54, A55" },
+  { brand: "Google", models: "Pixel 3 and newer (Pixel 3 must be a global model), including Pixel Fold and all a-series from 3a" },
+  { brand: "Huawei", models: "P40, P40 Pro, Mate 40 Pro" },
+  { brand: "Others", models: "Oppo Find X3 Pro and newer, Reno 5A+, Xiaomi 12T Pro and 13/14 series, Motorola Razr 2019+, Edge 40, Sony Xperia 10 III/IV/V" },
+];
+
+export const unsupportedNote =
+  "Not on the list, or bought your phone from a carrier? Dial *#06# — if an EID number appears, your phone supports eSIM. Phones locked to one network still need unlocking first.";

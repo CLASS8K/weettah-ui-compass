@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as MyEsimRouteImport } from './routes/my-esim'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminIntegrationsRouteImport } from './routes/_authenticated/admin.integrations'
@@ -45,6 +46,11 @@ const AuthRoute = AuthRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyEsimRoute = MyEsimRouteImport.update({
+  id: '/my-esim',
+  path: '/my-esim',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/my-esim': typeof MyEsimRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/my-esim': typeof MyEsimRoute
   '/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/my-esim': typeof MyEsimRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/activate'
     | '/auth'
     | '/checkout'
+    | '/my-esim'
     | '/admin'
     | '/admin/integrations'
     | '/admin/orders'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/activate'
     | '/auth'
     | '/checkout'
+    | '/my-esim'
     | '/admin/integrations'
     | '/admin/orders'
     | '/admin/packages'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/activate'
     | '/auth'
     | '/checkout'
+    | '/my-esim'
     | '/_authenticated/admin'
     | '/_authenticated/admin/integrations'
     | '/_authenticated/admin/orders'
@@ -186,6 +198,7 @@ export interface RootRouteChildren {
   ActivateRoute: typeof ActivateRoute
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
+  MyEsimRoute: typeof MyEsimRoute
   ApiPublicActivationQrRoute: typeof ApiPublicActivationQrRoute
   ApiPublicPesapalIpnRoute: typeof ApiPublicPesapalIpnRoute
 }
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-esim': {
+      id: '/my-esim'
+      path: '/my-esim'
+      fullPath: '/my-esim'
+      preLoaderRoute: typeof MyEsimRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -322,6 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivateRoute: ActivateRoute,
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
+  MyEsimRoute: MyEsimRoute,
   ApiPublicActivationQrRoute: ApiPublicActivationQrRoute,
   ApiPublicPesapalIpnRoute: ApiPublicPesapalIpnRoute,
 }
