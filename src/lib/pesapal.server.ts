@@ -65,6 +65,7 @@ export async function createPesapalCheckout(planId: string, customer: Customer, 
 
   const { error: insertError } = await supabaseAdmin.from("payment_orders").insert({
     merchant_reference: reference,
+    plan_id: plan.id,
     country: plan.country,
     data_allowance: plan.data,
     validity_days: plan.days,
@@ -132,7 +133,7 @@ export async function verifyPesapalOrder(orderTrackingId: string, merchantRefere
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: order } = await supabaseAdmin
     .from("payment_orders")
-    .select("merchant_reference, country, data_allowance, validity_days, amount_minor, currency, customer_email")
+    .select("merchant_reference, plan_id, country, data_allowance, validity_days, amount_minor, currency, customer_email, fulfillment_status, supplier_order_no, activation_token")
     .eq("merchant_reference", result.merchant_reference)
     .eq("pesapal_order_tracking_id", orderTrackingId)
     .maybeSingle();
@@ -150,6 +151,20 @@ export async function verifyPesapalOrder(orderTrackingId: string, merchantRefere
   }).eq("merchant_reference", order.merchant_reference);
   if (updateError) throw new Error("Unable to save payment status");
 
+  if (status === "completed" && order.fulfillment_status !== "ready") {
+    try {
+      const { provisionPaidOrder } = await import("./esim-access.server");
+      await provisionPaidOrder(order);
+    } catch (error) {
+      if (!(error instanceof Error && error.message === "ESIM_ACCESS_NOT_CONFIGURED")) console.error("eSIM fulfillment failed", error);
+    }
+  }
+
+  const { data: fulfilledOrder } = await supabaseAdmin.from("payment_orders")
+    .select("fulfillment_status")
+    .eq("merchant_reference", order.merchant_reference)
+    .maybeSingle();
+
   return {
     status,
     country: order.country,
@@ -159,5 +174,7 @@ export async function verifyPesapalOrder(orderTrackingId: string, merchantRefere
     email: order.customer_email.replace(/(^.).+(@.*$)/, "$1•••$2"),
     paymentMethod: result.payment_method || null,
     reference: order.merchant_reference,
+    fulfillmentStatus: fulfilledOrder?.fulfillment_status || order.fulfillment_status,
+    activationToken: order.activation_token,
   };
 }

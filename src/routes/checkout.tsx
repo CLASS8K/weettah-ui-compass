@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Check, Clock3, RotateCw, X } from "lucide-react";
+import { Check, Clock3, RotateCw, Smartphone, X } from "lucide-react";
 import weettahLogo from "@/assets/weettah-logo.png";
 import { Button } from "@/components/ui/button";
 import { checkPayment } from "@/lib/payments.functions";
@@ -68,7 +68,7 @@ function CheckoutStatus() {
           </h1>
           <p className="mt-5 max-w-xl leading-relaxed text-muted-foreground">
             {completed
-              ? `Your ${result.country} eSIM details will be sent to ${result.email}.`
+              ? result.fulfillmentStatus === "ready" ? `Your ${result.country} eSIM is ready to install.` : `Payment confirmed. We're preparing your ${result.country} eSIM now.`
               : failed
                 ? "No eSIM has been issued. You can return to the plans and try again."
                 : error
@@ -86,8 +86,10 @@ function CheckoutStatus() {
           )}
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            {completed && result.fulfillmentStatus === "ready" && <Button asChild><Link to="/activate" search={{ token: result.activationToken }}><Smartphone />Install my eSIM</Link></Button>}
+            {completed && result.fulfillmentStatus !== "ready" && <Button onClick={() => void loadStatus()} disabled={refreshing}>{refreshing ? <RotateCw className="animate-spin" /> : <RotateCw />}Check activation</Button>}
             {!completed && !failed && search.OrderTrackingId && <Button onClick={() => void loadStatus()} disabled={refreshing}>{refreshing ? <RotateCw className="animate-spin" /> : <RotateCw />}Check again</Button>}
-            <Button variant={completed ? "default" : "outline"} asChild><Link to="/" hash="destinations">{completed ? "Explore more plans" : "Back to plans"}</Link></Button>
+            <Button variant="outline" asChild><Link to="/" hash="destinations">{completed ? "Explore more plans" : "Back to plans"}</Link></Button>
           </div>
         </section>
         <p className="mt-6 text-sm text-muted-foreground">Need help? Keep your payment reference and contact Weettah support.</p>
