@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Check, CreditCard, Loader2, LockKeyhole, Menu, Search, ShieldCheck, Smartphone, X } from "lucide-react";
@@ -6,13 +6,15 @@ import heroImage from "@/assets/weettah-africa-hero.jpg";
 import weettahLogo from "@/assets/weettah-logo.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { faqs, regions, stats, steps } from "@/components/site/data";
+import { faqs, regions, stats, steps, supportedDevices, trustPoints, unsupportedNote } from "@/components/site/data";
 import { cn } from "@/lib/utils";
 import { beginCheckout } from "@/lib/payments.functions";
 import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
+
 
 export const Route = createFileRoute("/")({
   loader: () => getPublicPlans(),
@@ -32,9 +34,10 @@ export const Route = createFileRoute("/")({
 const nav = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Destinations", href: "#destinations" },
-  { label: "Why Weettah", href: "#why" },
+  { label: "Check my phone", href: "#compatibility" },
   { label: "FAQs", href: "#faq" },
 ];
+
 
 function Wordmark({ light = false }: { light?: boolean }) {
   return (
@@ -56,9 +59,10 @@ function Header() {
           {nav.map((item) => <a key={item.href} href={item.href} className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">{item.label}</a>)}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
-          <Button variant="ghost" size="sm">Log in</Button>
+          <Button variant="ghost" size="sm" asChild><Link to="/my-esim">Find my eSIM</Link></Button>
           <Button size="sm" asChild><a href="#destinations">Get connected <ArrowRight /></a></Button>
         </div>
+
         <Button variant="ghost" size="icon" className="md:hidden" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((value) => !value)}>
           {open ? <X /> : <Menu />}
         </Button>
@@ -67,10 +71,12 @@ function Header() {
         <div className="border-t border-border bg-background px-5 py-5 md:hidden">
           <nav className="flex flex-col" aria-label="Mobile navigation">
             {nav.map((item) => <a key={item.href} href={item.href} onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">{item.label}</a>)}
+            <Link to="/my-esim" onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">Find my eSIM</Link>
           </nav>
           <Button className="mt-5 w-full" asChild><a href="#destinations">Get connected <ArrowRight /></a></Button>
         </div>
       )}
+
     </header>
   );
 }
