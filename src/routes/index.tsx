@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { faqs, plans, regions, stats, steps, type Plan } from "@/components/site/data";
+import { faqs, regions, stats, steps } from "@/components/site/data";
 import { cn } from "@/lib/utils";
 import { beginCheckout } from "@/lib/payments.functions";
+import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
 
 export const Route = createFileRoute("/")({
+  loader: () => getPublicPlans(),
   head: () => ({
     meta: [
       { title: "Weettah — Africa-first travel eSIM" },
@@ -122,6 +124,7 @@ function Steps() {
 }
 
 function Plans() {
+  const plans = Route.useLoaderData();
   const [region, setRegion] = useState("All");
   const [query, setQuery] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
