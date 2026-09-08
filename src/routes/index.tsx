@@ -133,10 +133,11 @@ function Steps() {
 
 function Plans() {
   const { plans } = Route.useLoaderData();
+  const planList = plans ?? [];
   const [region, setRegion] = useState("All");
   const [query, setQuery] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const visible = useMemo(() => plans.filter((plan) => (region === "All" || plan.region === region) && plan.country.toLowerCase().includes(query.trim().toLowerCase())), [region, query]);
+  const visible = useMemo(() => planList.filter((plan) => (region === "All" || plan.region === region) && plan.country.toLowerCase().includes(query.trim().toLowerCase())), [planList, region, query]);
   return (
     <section id="destinations" className="bg-secondary text-secondary-foreground">
       <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
@@ -288,6 +289,7 @@ function Trust() {
 
 function Compatibility() {
   const { devices } = Route.useLoaderData();
+  const deviceList = devices ?? [];
   const [query, setQuery] = useState("");
   const [hint, setHint] = useState<DeviceHint | null>(null);
   useEffect(() => {
@@ -295,8 +297,8 @@ function Compatibility() {
   }, []);
   const term = query.trim().toLowerCase();
   const matches = useMemo(
-    () => (term.length < 2 ? devices : devices.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
-    [term, devices],
+    () => (term.length < 2 ? deviceList : deviceList.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
+    [term, deviceList],
   );
   return (
     <section id="compatibility" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
