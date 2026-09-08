@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ApiPublicActivationQrRouteImport } from './routes/api/public/activation/qr'
 import { Route as ApiPublicPesapalIpnRouteImport } from './routes/api/public/pesapal/ipn'
 
 const IndexRoute = IndexRouteImport.update({
@@ -18,9 +20,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ActivateRoute = ActivateRouteImport.update({
+  id: '/activate',
+  path: '/activate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicActivationQrRoute = ApiPublicActivationQrRouteImport.update({
+  id: '/api/public/activation/qr',
+  path: '/api/public/activation/qr',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPesapalIpnRoute = ApiPublicPesapalIpnRouteImport.update({
@@ -31,31 +43,55 @@ const ApiPublicPesapalIpnRoute = ApiPublicPesapalIpnRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/checkout': typeof CheckoutRoute
+  '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
   '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/checkout': typeof CheckoutRoute
+  '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
   '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/checkout': typeof CheckoutRoute
+  '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
   '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/checkout' | '/api/public/pesapal/ipn'
+  fullPaths:
+    | '/'
+    | '/activate'
+    | '/checkout'
+    | '/api/public/activation/qr'
+    | '/api/public/pesapal/ipn'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/checkout' | '/api/public/pesapal/ipn'
-  id: '__root__' | '/' | '/checkout' | '/api/public/pesapal/ipn'
+  to:
+    | '/'
+    | '/activate'
+    | '/checkout'
+    | '/api/public/activation/qr'
+    | '/api/public/pesapal/ipn'
+  id:
+    | '__root__'
+    | '/'
+    | '/activate'
+    | '/checkout'
+    | '/api/public/activation/qr'
+    | '/api/public/pesapal/ipn'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivateRoute: typeof ActivateRoute
   CheckoutRoute: typeof CheckoutRoute
+  ApiPublicActivationQrRoute: typeof ApiPublicActivationQrRoute
   ApiPublicPesapalIpnRoute: typeof ApiPublicPesapalIpnRoute
 }
 
@@ -68,11 +104,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/activate': {
+      id: '/activate'
+      path: '/activate'
+      fullPath: '/activate'
+      preLoaderRoute: typeof ActivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/checkout': {
       id: '/checkout'
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/activation/qr': {
+      id: '/api/public/activation/qr'
+      path: '/api/public/activation/qr'
+      fullPath: '/api/public/activation/qr'
+      preLoaderRoute: typeof ApiPublicActivationQrRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/pesapal/ipn': {
@@ -87,7 +137,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivateRoute: ActivateRoute,
   CheckoutRoute: CheckoutRoute,
+  ApiPublicActivationQrRoute: ApiPublicActivationQrRoute,
   ApiPublicPesapalIpnRoute: ApiPublicPesapalIpnRoute,
 }
 export const routeTree = rootRouteImport
