@@ -16,6 +16,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as MyEsimRouteImport } from './routes/my-esim'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as DestinationsIndexRouteImport } from './routes/destinations.index'
+import { Route as DestinationsSlugRouteImport } from './routes/destinations.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminDevicesRouteImport } from './routes/_authenticated/admin.devices'
 import { Route as AuthenticatedAdminIntegrationsRouteImport } from './routes/_authenticated/admin.integrations'
@@ -58,6 +60,16 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const DestinationsIndexRoute = DestinationsIndexRouteImport.update({
+  id: '/destinations/',
+  path: '/destinations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DestinationsSlugRoute = DestinationsSlugRouteImport.update({
+  id: '/destinations/$slug',
+  path: '/destinations/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
@@ -112,6 +124,8 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/destinations/$slug': typeof DestinationsSlugRoute
+  '/destinations/': typeof DestinationsIndexRoute
   '/admin/devices': typeof AuthenticatedAdminDevicesRoute
   '/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -127,6 +141,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
+  '/destinations/$slug': typeof DestinationsSlugRoute
+  '/destinations': typeof DestinationsIndexRoute
   '/admin/devices': typeof AuthenticatedAdminDevicesRoute
   '/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -145,6 +161,8 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/destinations/$slug': typeof DestinationsSlugRoute
+  '/destinations/': typeof DestinationsIndexRoute
   '/_authenticated/admin/devices': typeof AuthenticatedAdminDevicesRoute
   '/_authenticated/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -163,6 +181,8 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/my-esim'
     | '/admin'
+    | '/destinations/$slug'
+    | '/destinations/'
     | '/admin/devices'
     | '/admin/integrations'
     | '/admin/orders'
@@ -178,6 +198,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkout'
     | '/my-esim'
+    | '/destinations/$slug'
+    | '/destinations'
     | '/admin/devices'
     | '/admin/integrations'
     | '/admin/orders'
@@ -195,6 +217,8 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/my-esim'
     | '/_authenticated/admin'
+    | '/destinations/$slug'
+    | '/destinations/'
     | '/_authenticated/admin/devices'
     | '/_authenticated/admin/integrations'
     | '/_authenticated/admin/orders'
@@ -212,6 +236,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
   MyEsimRoute: typeof MyEsimRoute
+  DestinationsSlugRoute: typeof DestinationsSlugRoute
+  DestinationsIndexRoute: typeof DestinationsIndexRoute
   ApiPublicActivationQrRoute: typeof ApiPublicActivationQrRoute
   ApiPublicPesapalIpnRoute: typeof ApiPublicPesapalIpnRoute
 }
@@ -266,6 +292,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/destinations/': {
+      id: '/destinations/'
+      path: '/destinations'
+      fullPath: '/destinations/'
+      preLoaderRoute: typeof DestinationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/destinations/$slug': {
+      id: '/destinations/$slug'
+      path: '/destinations/$slug'
+      fullPath: '/destinations/$slug'
+      preLoaderRoute: typeof DestinationsSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -365,6 +405,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
   MyEsimRoute: MyEsimRoute,
+  DestinationsSlugRoute: DestinationsSlugRoute,
+  DestinationsIndexRoute: DestinationsIndexRoute,
   ApiPublicActivationQrRoute: ApiPublicActivationQrRoute,
   ApiPublicPesapalIpnRoute: ApiPublicPesapalIpnRoute,
 }
