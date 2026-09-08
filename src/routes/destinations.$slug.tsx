@@ -163,7 +163,7 @@ function DestinationPage() {
         <section className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-[0.75fr_1.25fr] lg:px-8 lg:py-20">
           <SectionHead label="Good to know" title="Questions before you buy" />
           <Accordion type="single" collapsible>
-            {faqs.map((item) => (
+            {pageFaqs.map((item) => (
               <AccordionItem key={item.q} value={item.q}>
                 <AccordionTrigger className="py-5 text-left text-base font-bold hover:no-underline">{item.q}</AccordionTrigger>
                 <AccordionContent className="max-w-2xl pb-5 leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
