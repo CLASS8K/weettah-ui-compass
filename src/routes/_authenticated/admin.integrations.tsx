@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Loader2, LockKeyhole, Save } from "lucide-react";
+import { CheckCircle2, Loader2, LockKeyhole, Save, Webhook } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { AdminShell, StatusBadge } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getAdminIntegrations, updateAdminIntegration } from "@/lib/admin.functions";
+import { getAdminIntegrations, registerAdminIpn, updateAdminIntegration } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/integrations")({
   head: () => ({ meta: [
@@ -32,5 +32,25 @@ function IntegrationEditor({ item, saving, onSave }: { item: Awaited<ReturnType<
   useEffect(() => { setName(item.provider_name); setUrl(item.api_base_url ?? ""); setEnvironment(item.environment as "test" | "live"); setNotification(item.notification_id ?? ""); }, [item]);
   const submit = (event: FormEvent) => { event.preventDefault(); onSave({ id: item.id as "esim_access" | "pesapal", providerName: name, apiBaseUrl: url, environment, notificationId: notification, primarySecret: primary, secondarySecret: secondary }); setPrimary(""); setSecondary(""); };
   const supplier = item.id === "esim_access";
-  return <form onSubmit={submit} className="rounded-md border border-border bg-card p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase text-primary">{supplier ? "eSIM delivery" : "Payments"}</p><h2 className="mt-1 text-xl font-bold">{item.provider_name}</h2><p className="mt-1 text-xs text-muted-foreground">Last updated {new Date(item.updated_at).toLocaleString()}</p></div><div className="flex items-center gap-2">{item.configured && <CheckCircle2 className="text-accent" />}<StatusBadge value={item.configured ? "configured" : "not configured"} /></div></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor={`${item.id}-name`}>Provider name</Label><Input id={`${item.id}-name`} value={name} onChange={(e) => setName(e.target.value)} required /></div><div className="space-y-2"><Label>Environment</Label><Select value={environment} onValueChange={(value) => setEnvironment(value as "test" | "live")}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="test">Test</SelectItem><SelectItem value="live">Live</SelectItem></SelectContent></Select></div><div className="space-y-2 sm:col-span-2"><Label htmlFor={`${item.id}-url`}>API address</Label><Input id={`${item.id}-url`} type="url" value={url} onChange={(e) => setUrl(e.target.value)} required /></div>{!supplier && <div className="space-y-2 sm:col-span-2"><Label htmlFor="notification">Notification ID</Label><Input id="notification" value={notification} onChange={(e) => setNotification(e.target.value)} /></div>}<div className="space-y-2"><Label htmlFor={`${item.id}-primary`}>{supplier ? "Access code" : "Consumer key"}</Label><Input id={`${item.id}-primary`} type="password" autoComplete="new-password" value={primary} onChange={(e) => setPrimary(e.target.value)} placeholder={item.credential_hint ?? "Not configured"} /></div>{!supplier && <div className="space-y-2"><Label htmlFor={`${item.id}-secondary`}>Consumer secret</Label><Input id={`${item.id}-secondary`} type="password" autoComplete="new-password" value={secondary} onChange={(e) => setSecondary(e.target.value)} placeholder={item.configured ? "Saved securely" : "Not configured"} /></div>}</div><div className="mt-6 flex justify-end border-t border-border pt-5"><Button type="submit" disabled={saving}><Save />Save integration</Button></div></form>;
+  return <form onSubmit={submit} className="rounded-md border border-border bg-card p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase text-primary">{supplier ? "eSIM delivery" : "Payments"}</p><h2 className="mt-1 text-xl font-bold">{item.provider_name}</h2><p className="mt-1 text-xs text-muted-foreground">Last updated {new Date(item.updated_at).toLocaleString()}</p></div><div className="flex items-center gap-2">{item.configured && <CheckCircle2 className="text-accent" />}<StatusBadge value={item.configured ? "configured" : "not configured"} /></div></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor={`${item.id}-name`}>Provider name</Label><Input id={`${item.id}-name`} value={name} onChange={(e) => setName(e.target.value)} required /></div><div className="space-y-2"><Label>Environment</Label><Select value={environment} onValueChange={(value) => setEnvironment(value as "test" | "live")}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="test">Test</SelectItem><SelectItem value="live">Live</SelectItem></SelectContent></Select></div><div className="space-y-2 sm:col-span-2"><Label htmlFor={`${item.id}-url`}>API address</Label><Input id={`${item.id}-url`} type="url" value={url} onChange={(e) => setUrl(e.target.value)} required /></div>{!supplier && <div className="space-y-2 sm:col-span-2"><Label htmlFor="notification">Notification ID</Label><Input id="notification" value={notification} onChange={(e) => setNotification(e.target.value)} /><IpnRegistration onRegistered={setNotification} /></div>}<div className="space-y-2"><Label htmlFor={`${item.id}-primary`}>{supplier ? "Access code" : "Consumer key"}</Label><Input id={`${item.id}-primary`} type="password" autoComplete="new-password" value={primary} onChange={(e) => setPrimary(e.target.value)} placeholder={item.credential_hint ?? "Not configured"} /></div>{!supplier && <div className="space-y-2"><Label htmlFor={`${item.id}-secondary`}>Consumer secret</Label><Input id={`${item.id}-secondary`} type="password" autoComplete="new-password" value={secondary} onChange={(e) => setSecondary(e.target.value)} placeholder={item.configured ? "Saved securely" : "Not configured"} /></div>}</div><div className="mt-6 flex justify-end border-t border-border pt-5"><Button type="submit" disabled={saving}><Save />Save integration</Button></div></form>;
+}
+function IpnRegistration({ onRegistered }: { onRegistered: (value: string) => void }) {
+  const register = useServerFn(registerAdminIpn);
+  const [url, setUrl] = useState("");
+  useEffect(() => { if (typeof window !== "undefined") setUrl(`${window.location.origin}/api/public/pesapal/ipn`); }, []);
+  const mutation = useMutation({ mutationFn: () => register({ data: { url } }), onSuccess: (result) => onRegistered(result.notificationId) });
+  return (
+    <div className="mt-3 rounded-md bg-surface p-4 text-sm text-surface-foreground">
+      <p className="flex items-center gap-2 font-bold"><Webhook className="size-4" />Payment notifications</p>
+      <p className="mt-1 text-xs">Register this address with Pesapal so payments confirm automatically. Use your live site address before going live.</p>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <Input value={url} onChange={(event) => setUrl(event.target.value)} aria-label="Notification address" className="bg-background" />
+        <Button type="button" variant="outline" onClick={() => mutation.mutate()} disabled={mutation.isPending || !url}>
+          {mutation.isPending ? <Loader2 className="animate-spin" /> : <Webhook />}Register
+        </Button>
+      </div>
+      {mutation.isSuccess && <p className="mt-2 text-xs font-bold text-accent">Registered. Save the integration to keep this notification ID.</p>}
+      {mutation.isError && <p className="mt-2 text-xs font-bold text-destructive">{(mutation.error as Error).message}</p>}
+    </div>
+  );
 }
