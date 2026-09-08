@@ -9,6 +9,10 @@
 # Growth features
 - [x] Pesapal payment-notification (IPN) registration from the admin panel
 - [x] Admin order CSV export and sales/activation reporting
+- [x] Trust strip near the plans (refund promise, payment methods, delivery, support)
+- [x] Phone compatibility checker + required confirmation before payment
+- [x] Clearer pricing (one-off, all-in, currency note, top-up instead of renewal)
+- [x] Customer order lookup at /my-esim (email + reference)
 - [ ] Customer email receipts + activation-link delivery (blocked: needs a verified sending domain)
 - [ ] SMS receipts (blocked: needs an SMS provider account)
 - [ ] West Africa expansion — OPay, Orange Money (blocked: needs a provider account)

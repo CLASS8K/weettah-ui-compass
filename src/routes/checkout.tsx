@@ -92,7 +92,10 @@ function CheckoutStatus() {
             <Button variant="outline" asChild><Link to="/" hash="destinations">{completed ? "Explore more plans" : "Back to plans"}</Link></Button>
           </div>
         </section>
-        <p className="mt-6 text-sm text-muted-foreground">Need help? Keep your payment reference and contact Weettah support.</p>
+        <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
+          Save your reference above — you can reopen this order anytime from <Link to="/my-esim" className="font-bold underline">Find my eSIM</Link>. Need help? Email support@weettah.com with your reference.
+        </p>
+
       </div>
     </main>
   );

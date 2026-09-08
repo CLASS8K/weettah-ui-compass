@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Check, CreditCard, Loader2, LockKeyhole, Menu, Search, ShieldCheck, Smartphone, X } from "lucide-react";
@@ -6,13 +6,15 @@ import heroImage from "@/assets/weettah-africa-hero.jpg";
 import weettahLogo from "@/assets/weettah-logo.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { faqs, regions, stats, steps } from "@/components/site/data";
+import { faqs, regions, stats, steps, supportedDevices, trustPoints, unsupportedNote } from "@/components/site/data";
 import { cn } from "@/lib/utils";
 import { beginCheckout } from "@/lib/payments.functions";
 import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
+
 
 export const Route = createFileRoute("/")({
   loader: () => getPublicPlans(),
@@ -32,9 +34,10 @@ export const Route = createFileRoute("/")({
 const nav = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Destinations", href: "#destinations" },
-  { label: "Why Weettah", href: "#why" },
+  { label: "Check my phone", href: "#compatibility" },
   { label: "FAQs", href: "#faq" },
 ];
+
 
 function Wordmark({ light = false }: { light?: boolean }) {
   return (
@@ -56,9 +59,10 @@ function Header() {
           {nav.map((item) => <a key={item.href} href={item.href} className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">{item.label}</a>)}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
-          <Button variant="ghost" size="sm">Log in</Button>
+          <Button variant="ghost" size="sm" asChild><Link to="/my-esim">Find my eSIM</Link></Button>
           <Button size="sm" asChild><a href="#destinations">Get connected <ArrowRight /></a></Button>
         </div>
+
         <Button variant="ghost" size="icon" className="md:hidden" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((value) => !value)}>
           {open ? <X /> : <Menu />}
         </Button>
@@ -67,10 +71,12 @@ function Header() {
         <div className="border-t border-border bg-background px-5 py-5 md:hidden">
           <nav className="flex flex-col" aria-label="Mobile navigation">
             {nav.map((item) => <a key={item.href} href={item.href} onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">{item.label}</a>)}
+            <Link to="/my-esim" onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">Find my eSIM</Link>
           </nav>
           <Button className="mt-5 w-full" asChild><a href="#destinations">Get connected <ArrowRight /></a></Button>
         </div>
       )}
+
     </header>
   );
 }
@@ -141,7 +147,7 @@ function Plans() {
         </div>
         {visible.length === 0 ? <p className="py-16 text-center text-secondary-foreground/70">No plans found. Try another destination.</p> : (
           <div className="mt-8 grid gap-px overflow-hidden rounded-lg bg-secondary-foreground/20 sm:grid-cols-2 lg:grid-cols-4">
-            {visible.map((plan) => <article key={plan.id} className="flex min-h-64 flex-col bg-secondary p-6 transition-colors hover:bg-secondary-foreground/5"><div className="flex items-start justify-between"><span className="text-3xl" aria-hidden>{plan.flag}</span>{plan.popular && <span className="text-xs font-bold uppercase text-surface">Popular</span>}</div><h3 className="mt-8 text-xl font-bold">{plan.country}</h3><p className="mt-1 text-sm text-secondary-foreground/65">{plan.data} · {plan.days} days</p><div className="mt-auto flex items-end justify-between pt-8"><p><span className="text-xs text-secondary-foreground/60">Total</span><span className="block font-display text-2xl font-extrabold">{plan.price}</span></p><Button size="icon" aria-label={`Choose ${plan.country} plan`} onClick={() => setSelectedPlan(plan)}><ArrowRight /></Button></div></article>)}
+            {visible.map((plan) => <article key={plan.id} className="flex min-h-64 flex-col bg-secondary p-6 transition-colors hover:bg-secondary-foreground/5"><div className="flex items-start justify-between"><span className="text-3xl" aria-hidden>{plan.flag}</span>{plan.popular && <span className="text-xs font-bold uppercase text-surface">Popular</span>}</div><h3 className="mt-8 text-xl font-bold">{plan.country}</h3><p className="mt-1 text-sm text-secondary-foreground/65">{plan.data} · {plan.days} days</p><p className="mt-2 text-xs leading-relaxed text-secondary-foreground/55">One-off payment. Top up anytime if the data runs out — your plan never renews on its own.</p><div className="mt-auto flex items-end justify-between pt-8"><p><span className="text-xs text-secondary-foreground/60">Total, all in</span><span className="block font-display text-2xl font-extrabold">{plan.price}</span><span className="text-xs text-secondary-foreground/60">charged in US dollars</span></p><Button size="icon" aria-label={`Choose ${plan.country} plan`} onClick={() => setSelectedPlan(plan)}><ArrowRight /></Button></div></article>)}
           </div>
         )}
       </div>
@@ -153,7 +159,9 @@ function Plans() {
 function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open: boolean; onOpenChange: (open: boolean) => void }) {
   const checkout = useServerFn(beginCheckout);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -191,11 +199,15 @@ function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open:
               <DialogTitle className="mt-2 text-2xl font-extrabold sm:text-3xl">{plan.flag} {plan.country}</DialogTitle>
               <DialogDescription className="text-secondary-foreground/70">{plan.data} of data · {plan.days} days</DialogDescription>
             </DialogHeader>
-            <div className="mt-6 flex items-end justify-between border-t border-secondary-foreground/20 pt-5">
-              <span className="text-sm text-secondary-foreground/70">Total due</span>
-              <span className="font-display text-3xl font-extrabold">{plan.price}</span>
+            <div className="mt-6 border-t border-secondary-foreground/20 pt-5">
+              <div className="flex items-end justify-between">
+                <span className="text-sm text-secondary-foreground/70">Total due today</span>
+                <span className="font-display text-3xl font-extrabold">{plan.price}</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">One-off payment in US dollars — no taxes or activation fees added, and nothing renews later. If you pay by mobile money or card in another currency, your provider converts at their own rate.</p>
             </div>
           </div>
+
           <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">
             <div>
               <h3 className="font-bold">Where should we send your eSIM?</h3>
@@ -216,10 +228,21 @@ function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open:
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Available methods depend on your country and Pesapal merchant approval. Payment details are entered securely on Pesapal, not stored by Weettah.</p>
             </div>
+            <div className="rounded-md border border-border p-4">
+              <div className="flex items-start gap-3">
+                <Checkbox id="compat" checked={confirmed} onCheckedChange={(value) => setConfirmed(value === true)} className="mt-1" />
+                <Label htmlFor="compat" className="text-sm font-semibold leading-relaxed">My phone supports eSIM and isn't locked to one network</Label>
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                Not sure? Dial <span className="font-bold">*#06#</span> — if an EID number appears, you're good. You can also{" "}
+                <a href="#compatibility" className="font-bold underline" onClick={() => onOpenChange(false)}>check the phone list</a>.
+              </p>
+            </div>
             {notice && <p role="alert" className="rounded-md bg-surface px-4 py-3 text-sm font-semibold text-surface-foreground">{notice}</p>}
-            <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting}>
+            <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting || !confirmed}>
               {submitting ? <><Loader2 className="animate-spin" />Opening secure payment…</> : <><LockKeyhole />Continue to payment · {plan.price}</>}
             </Button>
+
             <p className="text-center text-xs text-muted-foreground">By continuing, you agree to Weettah's terms and refund policy.</p>
           </form>
         </>}
@@ -241,6 +264,68 @@ function Why() {
   );
 }
 
+function Trust() {
+  return (
+    <section aria-label="Buying with confidence" className="border-y border-border bg-background">
+      <div className="mx-auto grid max-w-7xl gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+        {trustPoints.map((point) => (
+          <div key={point.title} className="bg-background px-5 py-8 lg:px-8">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 shrink-0 text-primary" />
+              <div>
+                <h3 className="font-bold leading-snug">{point.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{point.body}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Compatibility() {
+  const [query, setQuery] = useState("");
+  const term = query.trim().toLowerCase();
+  const matches = useMemo(
+    () => (term.length < 2 ? supportedDevices : supportedDevices.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
+    [term],
+  );
+  return (
+    <section id="compatibility" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+      <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+        <SectionHead label="Before you pay" title="Will it work on your phone?" body="Search your phone below. Buying an eSIM your phone can't use is the one mistake we'd rather you never make." />
+        <div className="relative w-full lg:max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="e.g. iPhone 13, Galaxy S22" aria-label="Search your phone model" className="h-12 pl-10" />
+        </div>
+      </div>
+      {matches.length === 0 ? (
+        <div className="mt-10 rounded-lg border border-border p-6">
+          <h3 className="font-bold">We can't confirm that one from the name alone</h3>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{unsupportedNote}</p>
+        </div>
+      ) : (
+        <>
+          <ul className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
+            {matches.map((item) => (
+              <li key={item.brand} className="bg-background p-6">
+                <div className="flex items-center gap-2">
+                  <Check className="text-primary" />
+                  <h3 className="text-lg font-bold">{item.brand}</h3>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.models}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-muted-foreground">{unsupportedNote}</p>
+        </>
+      )}
+    </section>
+  );
+}
+
+
 function Faq() {
   return (
     <section id="faq" className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[0.75fr_1.25fr] lg:px-8 lg:py-28"><SectionHead label="Good to know" title="Questions, answered plainly." body="Everything you need before you connect." /><Accordion type="single" collapsible>{faqs.map((item) => <AccordionItem key={item.q} value={item.q}><AccordionTrigger className="py-5 text-left text-base font-bold hover:no-underline">{item.q}</AccordionTrigger><AccordionContent className="max-w-2xl pb-5 leading-relaxed text-muted-foreground">{item.a}</AccordionContent></AccordionItem>)}</Accordion></section>
@@ -249,10 +334,10 @@ function Faq() {
 
 function Footer() {
   return (
-    <footer className="bg-secondary text-secondary-foreground"><div className="mx-auto max-w-7xl px-5 py-16 lg:px-8"><div className="flex flex-col justify-between gap-10 border-b border-secondary-foreground/20 pb-14 lg:flex-row lg:items-end"><div><Wordmark light /><h2 className="mt-8 max-w-2xl text-4xl font-extrabold sm:text-6xl">The world is calling.<br /><span className="text-surface">Pick up connected.</span></h2></div><Button size="lg" asChild><a href="#destinations">Choose a plan <ArrowRight /></a></Button></div><div className="flex flex-col justify-between gap-6 pt-8 text-sm text-secondary-foreground/60 sm:flex-row"><p>© {new Date().getFullYear()} Weettah. African-made. Globally connected.</p><div className="flex gap-6"><a href="#top">Terms</a><a href="#top">Privacy</a><a href="#faq">Support</a></div></div></div></footer>
+    <footer className="bg-secondary text-secondary-foreground"><div className="mx-auto max-w-7xl px-5 py-16 lg:px-8"><div className="flex flex-col justify-between gap-10 border-b border-secondary-foreground/20 pb-14 lg:flex-row lg:items-end"><div><Wordmark light /><h2 className="mt-8 max-w-2xl text-4xl font-extrabold sm:text-6xl">The world is calling.<br /><span className="text-surface">Pick up connected.</span></h2></div><Button size="lg" asChild><a href="#destinations">Choose a plan <ArrowRight /></a></Button></div><div className="flex flex-col justify-between gap-6 pt-8 text-sm text-secondary-foreground/60 sm:flex-row"><p>© {new Date().getFullYear()} Weettah. African-made. Globally connected.</p><div className="flex flex-wrap gap-6"><Link to="/my-esim">Find my eSIM</Link><a href="#compatibility">Phone check</a><a href="#top">Terms</a><a href="#top">Privacy</a><a href="#faq">Support</a></div></div></div></footer>
   );
 }
 
 function Home() {
-  return <div className="min-h-screen bg-background"><Header /><main><Hero /><Stats /><Steps /><Plans /><Why /><Faq /></main><Footer /></div>;
+  return <div className="min-h-screen bg-background"><Header /><main><Hero /><Stats /><Steps /><Trust /><Plans /><Compatibility /><Why /><Faq /></main><Footer /></div>;
 }
