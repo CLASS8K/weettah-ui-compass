@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Menu, Search, X } from "lucide-react";
 import heroImage from "@/assets/weettah-africa-hero.jpg";
+import weettahLogo from "@/assets/weettah-logo.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +32,10 @@ const nav = [
 
 function Wordmark({ light = false }: { light?: boolean }) {
   return (
-    <a href="#top" className={cn("font-display text-2xl font-extrabold", light && "text-primary-foreground")}>
-      weettah<span className="text-primary">.</span>
+    <a href="#top" className="inline-flex shrink-0 items-center" aria-label="Weettah home">
+      <span className={cn("inline-flex rounded-sm px-1.5 py-1", light && "bg-background")}>
+        <img src={weettahLogo} alt="Weettah" width={1276} height={371} className="h-8 w-auto sm:h-9" />
+      </span>
     </a>
   );
 }
