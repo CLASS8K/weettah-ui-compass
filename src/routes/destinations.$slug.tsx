@@ -51,9 +51,46 @@ function DestinationNotFound() {
 }
 
 function DestinationPage() {
-  const { destination, related } = Route.useLoaderData();
+  const { destination, related, guide } = Route.useLoaderData();
   const [selectedPlan, setSelectedPlan] = useState<PublicPlan | null>(null);
   if (!destination) return <DestinationNotFound />;
+
+  const pageFaqs = [...(guide?.faqs ?? []), ...faqs];
+  const facts = [
+    { label: "Capital", value: guide?.capital },
+    { label: "Currency", value: guide?.currency },
+    { label: "Languages", value: guide?.languages },
+    { label: "Power plug", value: guide?.powerPlug },
+    { label: "Emergency number", value: guide?.emergencyNumber },
+    { label: "Best time to visit", value: guide?.bestTime },
+  ].filter((fact) => Boolean(fact.value));
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        mainEntity: pageFaqs.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
+      },
+      {
+        "@type": "Product",
+        name: `${destination.country} travel eSIM`,
+        description: guide?.intro || `Prepaid travel data for ${destination.country} from Weettah.`,
+        brand: { "@type": "Brand", name: "Weettah" },
+        offers: destination.plans.map((plan) => ({
+          "@type": "Offer",
+          name: `${plan.data} · ${plan.days} days`,
+          price: (plan.amountMinor / 100).toFixed(2),
+          priceCurrency: plan.currency,
+          availability: "https://schema.org/InStock",
+        })),
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-background">
