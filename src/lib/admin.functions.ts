@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { decryptCredentials, encryptCredentials } from "./integration-settings.server";
 
 const APPROVED_ADMINS = new Set(["admin@takeflyt.com", "admin@weettah.com"]);
 
@@ -146,6 +145,7 @@ export const updateAdminIntegration = createServerFn({ method: "POST" })
   .inputValidator((input) => integrationUpdate.parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await assertAdmin(context);
+    const { decryptCredentials, encryptCredentials } = await import("./integration-settings.server");
     const { data: current } = await supabaseAdmin.from("integration_settings")
       .select("encrypted_credentials").eq("id", data.id).maybeSingle();
     const credentials = await decryptCredentials(current?.encrypted_credentials ?? null);
