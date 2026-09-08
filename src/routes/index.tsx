@@ -334,10 +334,10 @@ function Faq() {
 
 function Footer() {
   return (
-    <footer className="bg-secondary text-secondary-foreground"><div className="mx-auto max-w-7xl px-5 py-16 lg:px-8"><div className="flex flex-col justify-between gap-10 border-b border-secondary-foreground/20 pb-14 lg:flex-row lg:items-end"><div><Wordmark light /><h2 className="mt-8 max-w-2xl text-4xl font-extrabold sm:text-6xl">The world is calling.<br /><span className="text-surface">Pick up connected.</span></h2></div><Button size="lg" asChild><a href="#destinations">Choose a plan <ArrowRight /></a></Button></div><div className="flex flex-col justify-between gap-6 pt-8 text-sm text-secondary-foreground/60 sm:flex-row"><p>© {new Date().getFullYear()} Weettah. African-made. Globally connected.</p><div className="flex gap-6"><a href="#top">Terms</a><a href="#top">Privacy</a><a href="#faq">Support</a></div></div></div></footer>
+    <footer className="bg-secondary text-secondary-foreground"><div className="mx-auto max-w-7xl px-5 py-16 lg:px-8"><div className="flex flex-col justify-between gap-10 border-b border-secondary-foreground/20 pb-14 lg:flex-row lg:items-end"><div><Wordmark light /><h2 className="mt-8 max-w-2xl text-4xl font-extrabold sm:text-6xl">The world is calling.<br /><span className="text-surface">Pick up connected.</span></h2></div><Button size="lg" asChild><a href="#destinations">Choose a plan <ArrowRight /></a></Button></div><div className="flex flex-col justify-between gap-6 pt-8 text-sm text-secondary-foreground/60 sm:flex-row"><p>© {new Date().getFullYear()} Weettah. African-made. Globally connected.</p><div className="flex flex-wrap gap-6"><Link to="/my-esim">Find my eSIM</Link><a href="#compatibility">Phone check</a><a href="#top">Terms</a><a href="#top">Privacy</a><a href="#faq">Support</a></div></div></div></footer>
   );
 }
 
 function Home() {
-  return <div className="min-h-screen bg-background"><Header /><main><Hero /><Stats /><Steps /><Plans /><Why /><Faq /></main><Footer /></div>;
+  return <div className="min-h-screen bg-background"><Header /><main><Hero /><Stats /><Steps /><Trust /><Plans /><Compatibility /><Why /><Faq /></main><Footer /></div>;
 }
