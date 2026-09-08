@@ -12,6 +12,7 @@ const links = [
   { to: "/admin/orders", label: "Orders", icon: ReceiptText },
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   { to: "/admin/packages", label: "Packages", icon: Boxes },
+  { to: "/admin/guides", label: "Destination guides", icon: MapPinned },
   { to: "/admin/devices", label: "Phone check", icon: Smartphone },
   { to: "/admin/integrations", label: "Integrations", icon: Plug },
 ] as const;
