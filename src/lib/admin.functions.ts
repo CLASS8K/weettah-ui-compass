@@ -210,3 +210,115 @@ export const updateAdminIntegration = createServerFn({ method: "POST" })
     if (error) throw new Error("Unable to save integration");
     return { ok: true };
   });
+const ipnInput = z.object({ url: z.string().url().max(300) });
+
+export const registerAdminIpn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => ipnInput.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const parsed = new URL(data.url);
+    const allowedHost = parsed.hostname === "weettah.com" || parsed.hostname.endsWith(".weettah.com") || parsed.hostname.endsWith(".lovable.app");
+    if (parsed.protocol !== "https:" || !allowedHost || parsed.pathname !== "/api/public/pesapal/ipn") {
+      throw new Error("Use your live site address ending in /api/public/pesapal/ipn");
+    }
+    const { registerPesapalIpn } = await import("./pesapal.server");
+    return registerPesapalIpn(parsed.toString());
+  });
+
+type ReportOrder = {
+  country: string;
+  amount_minor: number;
+  currency: string;
+  status: string;
+  fulfillment_status: string;
+  payment_method: string | null;
+  created_at: string;
+};
+
+function groupTotals(rows: ReportOrder[], key: (row: ReportOrder) => string) {
+  const totals = new Map<string, { label: string; orders: number; revenueMinor: number }>();
+  for (const row of rows) {
+    const label = key(row) || "Unknown";
+    const entry = totals.get(label) ?? { label, orders: 0, revenueMinor: 0 };
+    entry.orders += 1;
+    entry.revenueMinor += row.amount_minor;
+    totals.set(label, entry);
+  }
+  return [...totals.values()].sort((a, b) => b.revenueMinor - a.revenueMinor);
+}
+
+export const getAdminReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ days: z.number().int().min(7).max(365).default(30) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    const since = new Date(Date.now() - data.days * 86400000).toISOString();
+    const { data: rows, error } = await supabaseAdmin.from("payment_orders")
+      .select("country, amount_minor, currency, status, fulfillment_status, payment_method, created_at")
+      .gte("created_at", since)
+      .order("created_at", { ascending: true })
+      .limit(5000);
+    if (error) throw new Error("Unable to build the report");
+    const all = (rows ?? []) as ReportOrder[];
+    const paid = all.filter((row) => row.status === "completed");
+    const currency = paid[0]?.currency ?? all[0]?.currency ?? "USD";
+    const daily = new Map<string, { day: string; orders: number; revenueMinor: number }>();
+    for (let index = data.days - 1; index >= 0; index -= 1) {
+      const day = new Date(Date.now() - index * 86400000).toISOString().slice(0, 10);
+      daily.set(day, { day, orders: 0, revenueMinor: 0 });
+    }
+    for (const row of paid) {
+      const day = row.created_at.slice(0, 10);
+      const entry = daily.get(day);
+      if (entry) { entry.orders += 1; entry.revenueMinor += row.amount_minor; }
+    }
+    const ready = paid.filter((row) => row.fulfillment_status === "ready").length;
+    return {
+      days: data.days,
+      currency,
+      totals: {
+        orders: all.length,
+        paidOrders: paid.length,
+        revenueMinor: paid.reduce((sum, row) => sum + row.amount_minor, 0),
+        averageMinor: paid.length ? Math.round(paid.reduce((sum, row) => sum + row.amount_minor, 0) / paid.length) : 0,
+        paymentRate: all.length ? Math.round((paid.length / all.length) * 100) : 0,
+        activationRate: paid.length ? Math.round((ready / paid.length) * 100) : 0,
+      },
+      daily: [...daily.values()],
+      byCountry: groupTotals(paid, (row) => row.country).slice(0, 8),
+      byMethod: groupTotals(paid, (row) => row.payment_method ?? "Unknown").slice(0, 8),
+    };
+  });
+
+function csvCell(value: unknown) {
+  const text = value === null || value === undefined ? "" : String(value);
+  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+export const exportAdminOrders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => orderFilter.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    let query = supabaseAdmin.from("payment_orders")
+      .select("merchant_reference, created_at, updated_at, country, data_allowance, validity_days, amount_minor, currency, status, payment_method, confirmation_code, fulfillment_status, fulfillment_error, supplier_order_no, iccid, customer_first_name, customer_last_name, customer_email, customer_phone")
+      .order("created_at", { ascending: false }).limit(5000);
+    if (data.status !== "all") query = query.eq("status", data.status);
+    if (data.fulfillment !== "all") query = query.eq("fulfillment_status", data.fulfillment);
+    const safeQuery = data.query.replace(/[^a-zA-Z0-9@._+\- ]/g, "").trim();
+    if (safeQuery) query = query.or(`merchant_reference.ilike.%${safeQuery}%,customer_email.ilike.%${safeQuery}%,country.ilike.%${safeQuery}%`);
+    const { data: orders, error } = await query;
+    if (error) throw new Error("Unable to export orders");
+    const headers = ["Reference", "Created", "Updated", "Country", "Data", "Days", "Amount", "Currency", "Payment status", "Payment method", "Confirmation code", "Activation status", "Activation error", "Supplier order", "ICCID", "First name", "Last name", "Email", "Phone"];
+    const lines = [headers.join(",")];
+    for (const order of orders ?? []) {
+      lines.push([
+        order.merchant_reference, order.created_at, order.updated_at, order.country, order.data_allowance, order.validity_days,
+        (order.amount_minor / 100).toFixed(2), order.currency, order.status, order.payment_method, order.confirmation_code,
+        order.fulfillment_status, order.fulfillment_error, order.supplier_order_no, order.iccid,
+        order.customer_first_name, order.customer_last_name, order.customer_email, order.customer_phone,
+      ].map(csvCell).join(","));
+    }
+    return { filename: `weettah-orders-${new Date().toISOString().slice(0, 10)}.csv`, csv: lines.join("\n"), rows: orders?.length ?? 0 };
+  });
