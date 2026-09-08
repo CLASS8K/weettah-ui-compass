@@ -197,11 +197,15 @@ function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open:
               <DialogTitle className="mt-2 text-2xl font-extrabold sm:text-3xl">{plan.flag} {plan.country}</DialogTitle>
               <DialogDescription className="text-secondary-foreground/70">{plan.data} of data · {plan.days} days</DialogDescription>
             </DialogHeader>
-            <div className="mt-6 flex items-end justify-between border-t border-secondary-foreground/20 pt-5">
-              <span className="text-sm text-secondary-foreground/70">Total due</span>
-              <span className="font-display text-3xl font-extrabold">{plan.price}</span>
+            <div className="mt-6 border-t border-secondary-foreground/20 pt-5">
+              <div className="flex items-end justify-between">
+                <span className="text-sm text-secondary-foreground/70">Total due today</span>
+                <span className="font-display text-3xl font-extrabold">{plan.price}</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">One-off payment in US dollars — no taxes or activation fees added, and nothing renews later. If you pay by mobile money or card in another currency, your provider converts at their own rate.</p>
             </div>
           </div>
+
           <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">
             <div>
               <h3 className="font-bold">Where should we send your eSIM?</h3>
