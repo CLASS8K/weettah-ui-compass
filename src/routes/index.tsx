@@ -1,13 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { ArrowRight, Check, Menu, Search, X } from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowRight, Check, CreditCard, Loader2, LockKeyhole, Menu, Search, ShieldCheck, Smartphone, X } from "lucide-react";
 import heroImage from "@/assets/weettah-africa-hero.jpg";
 import weettahLogo from "@/assets/weettah-logo.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { faqs, plans, regions, stats, steps } from "@/components/site/data";
+import { Label } from "@/components/ui/label";
+import { faqs, plans, regions, stats, steps, type Plan } from "@/components/site/data";
 import { cn } from "@/lib/utils";
+import { beginCheckout } from "@/lib/payments.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -120,6 +124,7 @@ function Steps() {
 function Plans() {
   const [region, setRegion] = useState("All");
   const [query, setQuery] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const visible = useMemo(() => plans.filter((plan) => (region === "All" || plan.region === region) && plan.country.toLowerCase().includes(query.trim().toLowerCase())), [region, query]);
   return (
     <section id="destinations" className="bg-secondary text-secondary-foreground">
@@ -133,11 +138,90 @@ function Plans() {
         </div>
         {visible.length === 0 ? <p className="py-16 text-center text-secondary-foreground/70">No plans found. Try another destination.</p> : (
           <div className="mt-8 grid gap-px overflow-hidden rounded-lg bg-secondary-foreground/20 sm:grid-cols-2 lg:grid-cols-4">
-            {visible.map((plan) => <article key={plan.country} className="flex min-h-64 flex-col bg-secondary p-6 transition-colors hover:bg-secondary-foreground/5"><div className="flex items-start justify-between"><span className="text-3xl" aria-hidden>{plan.flag}</span>{plan.popular && <span className="text-xs font-bold uppercase text-surface">Popular</span>}</div><h3 className="mt-8 text-xl font-bold">{plan.country}</h3><p className="mt-1 text-sm text-secondary-foreground/65">{plan.data} · {plan.days} days</p><div className="mt-auto flex items-end justify-between pt-8"><p><span className="text-xs text-secondary-foreground/60">From</span><span className="block font-display text-2xl font-extrabold">{plan.price}</span></p><Button size="icon" aria-label={`Choose ${plan.country} plan`}><ArrowRight /></Button></div></article>)}
+            {visible.map((plan) => <article key={plan.id} className="flex min-h-64 flex-col bg-secondary p-6 transition-colors hover:bg-secondary-foreground/5"><div className="flex items-start justify-between"><span className="text-3xl" aria-hidden>{plan.flag}</span>{plan.popular && <span className="text-xs font-bold uppercase text-surface">Popular</span>}</div><h3 className="mt-8 text-xl font-bold">{plan.country}</h3><p className="mt-1 text-sm text-secondary-foreground/65">{plan.data} · {plan.days} days</p><div className="mt-auto flex items-end justify-between pt-8"><p><span className="text-xs text-secondary-foreground/60">Total</span><span className="block font-display text-2xl font-extrabold">{plan.price}</span></p><Button size="icon" aria-label={`Choose ${plan.country} plan`} onClick={() => setSelectedPlan(plan)}><ArrowRight /></Button></div></article>)}
           </div>
         )}
       </div>
+      <CheckoutDialog plan={selectedPlan} open={selectedPlan !== null} onOpenChange={(open) => { if (!open) setSelectedPlan(null); }} />
     </section>
+  );
+}
+
+function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const checkout = useServerFn(beginCheckout);
+  const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!plan) return;
+    setSubmitting(true);
+    setNotice(null);
+    const values = new FormData(event.currentTarget);
+    try {
+      const result = await checkout({ data: {
+        planId: plan.id,
+        firstName: String(values.get("firstName") || ""),
+        lastName: String(values.get("lastName") || ""),
+        email: String(values.get("email") || ""),
+        phone: String(values.get("phone") || ""),
+      } });
+      if (!result.ok) {
+        setNotice("Checkout is ready in test mode. Pesapal merchant credentials are still needed before payments can open.");
+        return;
+      }
+      window.location.assign(result.redirectUrl);
+    } catch {
+      setNotice("We couldn't start checkout. Please check your details and try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[92svh] overflow-y-auto border-border bg-background p-0 sm:max-w-2xl">
+        {plan && <>
+          <div className="bg-secondary px-6 py-7 text-secondary-foreground sm:px-8">
+            <DialogHeader>
+              <p className="text-xs font-bold uppercase text-surface">Secure checkout</p>
+              <DialogTitle className="mt-2 text-2xl font-extrabold sm:text-3xl">{plan.flag} {plan.country}</DialogTitle>
+              <DialogDescription className="text-secondary-foreground/70">{plan.data} of data · {plan.days} days</DialogDescription>
+            </DialogHeader>
+            <div className="mt-6 flex items-end justify-between border-t border-secondary-foreground/20 pt-5">
+              <span className="text-sm text-secondary-foreground/70">Total due</span>
+              <span className="font-display text-3xl font-extrabold">{plan.price} USD</span>
+            </div>
+          </div>
+          <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">
+            <div>
+              <h3 className="font-bold">Where should we send your eSIM?</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Your QR code and setup steps arrive by email after payment.</p>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="space-y-2"><Label htmlFor="firstName">First name</Label><Input id="firstName" name="firstName" autoComplete="given-name" required minLength={2} /></div>
+              <div className="space-y-2"><Label htmlFor="lastName">Last name</Label><Input id="lastName" name="lastName" autoComplete="family-name" required minLength={2} /></div>
+              <div className="space-y-2 sm:col-span-2"><Label htmlFor="email">Email address</Label><Input id="email" name="email" type="email" autoComplete="email" required /></div>
+              <div className="space-y-2 sm:col-span-2"><Label htmlFor="phone">Mobile number</Label><Input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="+265…" required minLength={7} /></div>
+            </div>
+            <div className="border-y border-border py-5">
+              <p className="text-xs font-bold uppercase text-muted-foreground">Pay securely with</p>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm font-semibold sm:grid-cols-3">
+                <span className="flex items-center gap-2"><Smartphone className="text-primary" />Mobile money</span>
+                <span className="flex items-center gap-2"><CreditCard className="text-primary" />Visa & Mastercard</span>
+                <span className="flex items-center gap-2"><ShieldCheck className="text-primary" />Pesapal</span>
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Available methods depend on your country and Pesapal merchant approval. Payment details are entered securely on Pesapal, not stored by Weettah.</p>
+            </div>
+            {notice && <p role="alert" className="rounded-md bg-surface px-4 py-3 text-sm font-semibold text-surface-foreground">{notice}</p>}
+            <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting}>
+              {submitting ? <><Loader2 className="animate-spin" />Opening secure payment…</> : <><LockKeyhole />Continue to payment · {plan.price}</>}
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">By continuing, you agree to Weettah's terms and refund policy.</p>
+          </form>
+        </>}
+      </DialogContent>
+    </Dialog>
   );
 }
 
