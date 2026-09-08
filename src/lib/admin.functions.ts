@@ -11,13 +11,38 @@ async function assertAdmin(context: { supabase: any; userId: string }) {
     throw new Error("Forbidden");
   }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { error: roleError } = await supabaseAdmin.from("user_roles").upsert(
-    { user_id: context.userId, role: "supplier_admin" },
-    { onConflict: "user_id,role" },
-  );
-  if (roleError) throw new Error("Unable to verify admin access");
+  const { data: role, error: roleError } = await supabaseAdmin.from("user_roles")
+    .select("id")
+    .eq("user_id", context.userId)
+    .eq("role", "supplier_admin")
+    .maybeSingle();
+  if (roleError || !role) throw new Error("Forbidden");
   return { email, supabaseAdmin };
 }
+
+export const claimAdminAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: userData, error: userError } = await context.supabase.auth.getUser();
+    const email = userData.user?.email?.toLowerCase();
+    if (userError || !email || !userData.user?.email_confirmed_at || !APPROVED_ADMINS.has(email)) {
+      throw new Error("Forbidden");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("user_roles").upsert(
+      { user_id: context.userId, role: "supplier_admin" },
+      { onConflict: "user_id,role" },
+    );
+    if (error) throw new Error("Unable to grant admin access");
+    return { ok: true };
+  });
+
+export const verifyAdminAccess = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { email } = await assertAdmin(context);
+    return { email };
+  });
 
 export const getAdminOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -79,7 +104,14 @@ export const retryAdminFulfillment = createServerFn({ method: "POST" })
       .eq("merchant_reference", data.reference).maybeSingle();
     if (!order || order.status !== "completed") throw new Error("Only paid orders can be activated");
     if (order.fulfillment_status === "failed") {
-      await supabaseAdmin.from("payment_orders").update({ fulfillment_status: "not_started", fulfillment_error: null }).eq("merchant_reference", data.reference);
+      const { data: claimed, error } = await supabaseAdmin.from("payment_orders")
+        .update({ fulfillment_status: "not_started", fulfillment_error: null })
+        .eq("merchant_reference", data.reference)
+        .eq("fulfillment_status", "failed")
+        .select("merchant_reference")
+        .maybeSingle();
+      if (error) throw new Error("Unable to retry activation");
+      if (!claimed) return { ok: true };
       order.fulfillment_status = "not_started";
     }
     const { provisionPaidOrder } = await import("./esim-access.server");
@@ -142,11 +174,23 @@ const integrationUpdate = z.object({
   secondarySecret: z.string().max(1000),
 });
 
+function approvedApiBase(id: "esim_access" | "pesapal", environment: "test" | "live", value: string) {
+  const normalized = value.replace(/\/+$/, "");
+  const allowed = id === "esim_access"
+    ? ["https://api.esimaccess.com/api/v1/open"]
+    : environment === "live"
+      ? ["https://pay.pesapal.com/v3/api"]
+      : ["https://cybqa.pesapal.com/pesapalv3/api"];
+  if (!allowed.includes(normalized)) throw new Error("Use the official provider API address for this environment");
+  return normalized;
+}
+
 export const updateAdminIntegration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => integrationUpdate.parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await assertAdmin(context);
+    const apiBaseUrl = approvedApiBase(data.id, data.environment, data.apiBaseUrl);
     const { decryptCredentials, encryptCredentials } = await import("./integration-settings.server");
     const { data: current } = await supabaseAdmin.from("integration_settings")
       .select("encrypted_credentials").eq("id", data.id).maybeSingle();
@@ -157,7 +201,7 @@ export const updateAdminIntegration = createServerFn({ method: "POST" })
     const encrypted = Object.keys(credentials).length ? await encryptCredentials(credentials) : null;
     const { error } = await supabaseAdmin.from("integration_settings").update({
       provider_name: data.providerName,
-      api_base_url: data.apiBaseUrl,
+      api_base_url: apiBaseUrl,
       environment: data.environment,
       notification_id: data.notificationId || null,
       encrypted_credentials: encrypted,
