@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Boxes, LayoutDashboard, LogOut, Plug, ReceiptText, Smartphone } from "lucide-react";
+import { BarChart3, Boxes, LayoutDashboard, LogOut, MapPinned, Plug, ReceiptText, Smartphone } from "lucide-react";
 import weettahLogo from "@/assets/weettah-logo.png";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
