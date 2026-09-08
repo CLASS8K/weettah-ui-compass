@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      payment_orders: {
+        Row: {
+          amount_minor: number
+          confirmation_code: string | null
+          country: string
+          created_at: string
+          currency: string
+          customer_email: string
+          customer_first_name: string
+          customer_last_name: string
+          customer_phone: string
+          data_allowance: string
+          id: string
+          merchant_reference: string
+          payment_method: string | null
+          pesapal_order_tracking_id: string | null
+          provider_status_description: string | null
+          status: string
+          updated_at: string
+          validity_days: number
+        }
+        Insert: {
+          amount_minor: number
+          confirmation_code?: string | null
+          country: string
+          created_at?: string
+          currency?: string
+          customer_email: string
+          customer_first_name: string
+          customer_last_name: string
+          customer_phone: string
+          data_allowance: string
+          id?: string
+          merchant_reference: string
+          payment_method?: string | null
+          pesapal_order_tracking_id?: string | null
+          provider_status_description?: string | null
+          status?: string
+          updated_at?: string
+          validity_days: number
+        }
+        Update: {
+          amount_minor?: number
+          confirmation_code?: string | null
+          country?: string
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          customer_first_name?: string
+          customer_last_name?: string
+          customer_phone?: string
+          data_allowance?: string
+          id?: string
+          merchant_reference?: string
+          payment_method?: string | null
+          pesapal_order_tracking_id?: string | null
+          provider_status_description?: string | null
+          status?: string
+          updated_at?: string
+          validity_days?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
