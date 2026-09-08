@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { faqs, plans, regions, stats, steps, type Plan } from "@/components/site/data";
+import { faqs, regions, stats, steps } from "@/components/site/data";
 import { cn } from "@/lib/utils";
 import { beginCheckout } from "@/lib/payments.functions";
+import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
 
 export const Route = createFileRoute("/")({
+  loader: () => getPublicPlans(),
   head: () => ({
     meta: [
       { title: "Weettah — Africa-first travel eSIM" },
@@ -122,6 +124,7 @@ function Steps() {
 }
 
 function Plans() {
+  const plans = Route.useLoaderData();
   const [region, setRegion] = useState("All");
   const [query, setQuery] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -190,7 +193,7 @@ function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open:
             </DialogHeader>
             <div className="mt-6 flex items-end justify-between border-t border-secondary-foreground/20 pt-5">
               <span className="text-sm text-secondary-foreground/70">Total due</span>
-              <span className="font-display text-3xl font-extrabold">{plan.price} USD</span>
+              <span className="font-display text-3xl font-extrabold">{plan.price}</span>
             </div>
           </div>
           <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">

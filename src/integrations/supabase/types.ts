@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      integration_settings: {
+        Row: {
+          api_base_url: string | null
+          created_at: string
+          credential_hint: string | null
+          encrypted_credentials: string | null
+          environment: string
+          id: string
+          notification_id: string | null
+          provider_name: string
+          updated_at: string
+        }
+        Insert: {
+          api_base_url?: string | null
+          created_at?: string
+          credential_hint?: string | null
+          encrypted_credentials?: string | null
+          environment?: string
+          id: string
+          notification_id?: string | null
+          provider_name: string
+          updated_at?: string
+        }
+        Update: {
+          api_base_url?: string | null
+          created_at?: string
+          credential_hint?: string | null
+          encrypted_credentials?: string | null
+          environment?: string
+          id?: string
+          notification_id?: string | null
+          provider_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_orders: {
         Row: {
           activation_code: string | null
@@ -110,15 +146,93 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          amount_minor: number
+          country: string
+          created_at: string
+          currency: string
+          data_allowance: string
+          display_order: number
+          flag: string
+          id: string
+          is_active: boolean
+          is_popular: boolean
+          region: string
+          supplier_package_code: string | null
+          updated_at: string
+          validity_days: number
+        }
+        Insert: {
+          amount_minor: number
+          country: string
+          created_at?: string
+          currency?: string
+          data_allowance: string
+          display_order?: number
+          flag: string
+          id: string
+          is_active?: boolean
+          is_popular?: boolean
+          region: string
+          supplier_package_code?: string | null
+          updated_at?: string
+          validity_days: number
+        }
+        Update: {
+          amount_minor?: number
+          country?: string
+          created_at?: string
+          currency?: string
+          data_allowance?: string
+          display_order?: number
+          flag?: string
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          region?: string
+          supplier_package_code?: string | null
+          updated_at?: string
+          validity_days?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "supplier_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -245,6 +359,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["supplier_admin"],
+    },
   },
 } as const

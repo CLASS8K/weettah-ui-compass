@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { getIntegrationSettings } from "./integration-settings.server";
 
 type FulfillmentOrder = {
   merchant_reference: string;
@@ -23,24 +24,21 @@ type SupplierProfile = {
   apn?: string;
 };
 
-const API_BASE = "https://api.esimaccess.com/api/v1/open";
-
-function getConfiguration() {
-  const accessCode = process.env["ESIM_ACCESS_CODE"];
-  const rawPackages = process.env["ESIM_ACCESS_PACKAGES"];
-  if (!accessCode || !rawPackages) throw new Error("ESIM_ACCESS_NOT_CONFIGURED");
-
-  let packages: Record<string, string>;
+async function getConfiguration() {
   try {
-    packages = JSON.parse(rawPackages) as Record<string, string>;
+    const settings = await getIntegrationSettings("esim_access");
+    const accessCode = settings.credentials["accessCode"];
+    if (!accessCode) throw new Error("ESIM_ACCESS_NOT_CONFIGURED");
+    return { accessCode, apiBase: settings.api_base_url || "https://api.esimaccess.com/api/v1/open" };
   } catch {
-    throw new Error("ESIM_ACCESS_PACKAGES_INVALID");
+    const accessCode = process.env["ESIM_ACCESS_CODE"];
+    if (!accessCode) throw new Error("ESIM_ACCESS_NOT_CONFIGURED");
+    return { accessCode, apiBase: "https://api.esimaccess.com/api/v1/open" };
   }
-  return { accessCode, packages };
 }
 
 async function supplierRequest<T>(path: string, payload: Record<string, unknown>) {
-  const { accessCode } = getConfiguration();
+  const { accessCode, apiBase } = await getConfiguration();
   const body = JSON.stringify(payload);
   const timestamp = Date.now().toString();
   const requestId = crypto.randomUUID();
@@ -48,7 +46,7 @@ async function supplierRequest<T>(path: string, payload: Record<string, unknown>
     .update(`${timestamp}${requestId}${accessCode}${body}`)
     .digest("hex")
     .toLowerCase();
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${apiBase}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -95,10 +93,18 @@ async function retrieveProfile(reference: string, orderNo: string) {
 
 export async function provisionPaidOrder(order: FulfillmentOrder) {
   if (order.fulfillment_status === "ready") return;
-  const { packages } = getConfiguration();
-  const packageCode = order.plan_id ? packages[order.plan_id] : undefined;
-  if (!packageCode) throw new Error("ESIM_PACKAGE_NOT_MAPPED");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: plan } = order.plan_id
+    ? await supabaseAdmin.from("plans").select("supplier_package_code").eq("id", order.plan_id).maybeSingle()
+    : { data: null };
+  let packageCode = plan?.supplier_package_code;
+  if (!packageCode) {
+    const rawPackages = process.env["ESIM_ACCESS_PACKAGES"];
+    if (rawPackages && order.plan_id) {
+      try { packageCode = (JSON.parse(rawPackages) as Record<string, string>)[order.plan_id]; } catch { /* transition fallback only */ }
+    }
+  }
+  if (!packageCode) throw new Error("ESIM_PACKAGE_NOT_MAPPED");
 
   if (order.supplier_order_no) {
     await retrieveProfile(order.merchant_reference, order.supplier_order_no);
