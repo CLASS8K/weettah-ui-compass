@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      destination_content: {
+        Row: {
+          best_time: string
+          capital: string
+          country: string
+          coverage: string
+          created_at: string
+          currency: string
+          emergency_number: string
+          id: string
+          intro: string
+          is_published: boolean
+          languages: string
+          local_faqs: Json
+          power_plug: string
+          slug: string
+          tips: Json
+          updated_at: string
+        }
+        Insert: {
+          best_time?: string
+          capital?: string
+          country: string
+          coverage?: string
+          created_at?: string
+          currency?: string
+          emergency_number?: string
+          id?: string
+          intro?: string
+          is_published?: boolean
+          languages?: string
+          local_faqs?: Json
+          power_plug?: string
+          slug: string
+          tips?: Json
+          updated_at?: string
+        }
+        Update: {
+          best_time?: string
+          capital?: string
+          country?: string
+          coverage?: string
+          created_at?: string
+          currency?: string
+          emergency_number?: string
+          id?: string
+          intro?: string
+          is_published?: boolean
+          languages?: string
+          local_faqs?: Json
+          power_plug?: string
+          slug?: string
+          tips?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       integration_settings: {
         Row: {
           api_base_url: string | null
