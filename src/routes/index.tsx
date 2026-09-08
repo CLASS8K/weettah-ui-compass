@@ -228,10 +228,21 @@ function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open:
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Available methods depend on your country and Pesapal merchant approval. Payment details are entered securely on Pesapal, not stored by Weettah.</p>
             </div>
+            <div className="rounded-md border border-border p-4">
+              <div className="flex items-start gap-3">
+                <Checkbox id="compat" checked={confirmed} onCheckedChange={(value) => setConfirmed(value === true)} className="mt-1" />
+                <Label htmlFor="compat" className="text-sm font-semibold leading-relaxed">My phone supports eSIM and isn't locked to one network</Label>
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                Not sure? Dial <span className="font-bold">*#06#</span> — if an EID number appears, you're good. You can also{" "}
+                <a href="#compatibility" className="font-bold underline" onClick={() => onOpenChange(false)}>check the phone list</a>.
+              </p>
+            </div>
             {notice && <p role="alert" className="rounded-md bg-surface px-4 py-3 text-sm font-semibold text-surface-foreground">{notice}</p>}
-            <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting}>
+            <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting || !confirmed}>
               {submitting ? <><Loader2 className="animate-spin" />Opening secure payment…</> : <><LockKeyhole />Continue to payment · {plan.price}</>}
             </Button>
+
             <p className="text-center text-xs text-muted-foreground">By continuing, you agree to Weettah's terms and refund policy.</p>
           </form>
         </>}
