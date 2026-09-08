@@ -264,6 +264,68 @@ function Why() {
   );
 }
 
+function Trust() {
+  return (
+    <section aria-label="Buying with confidence" className="border-y border-border bg-background">
+      <div className="mx-auto grid max-w-7xl gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+        {trustPoints.map((point) => (
+          <div key={point.title} className="bg-background px-5 py-8 lg:px-8">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 shrink-0 text-primary" />
+              <div>
+                <h3 className="font-bold leading-snug">{point.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{point.body}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Compatibility() {
+  const [query, setQuery] = useState("");
+  const term = query.trim().toLowerCase();
+  const matches = useMemo(
+    () => (term.length < 2 ? supportedDevices : supportedDevices.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
+    [term],
+  );
+  return (
+    <section id="compatibility" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+      <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+        <SectionHead label="Before you pay" title="Will it work on your phone?" body="Search your phone below. Buying an eSIM your phone can't use is the one mistake we'd rather you never make." />
+        <div className="relative w-full lg:max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="e.g. iPhone 13, Galaxy S22" aria-label="Search your phone model" className="h-12 pl-10" />
+        </div>
+      </div>
+      {matches.length === 0 ? (
+        <div className="mt-10 rounded-lg border border-border p-6">
+          <h3 className="font-bold">We can't confirm that one from the name alone</h3>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{unsupportedNote}</p>
+        </div>
+      ) : (
+        <>
+          <ul className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
+            {matches.map((item) => (
+              <li key={item.brand} className="bg-background p-6">
+                <div className="flex items-center gap-2">
+                  <Check className="text-primary" />
+                  <h3 className="text-lg font-bold">{item.brand}</h3>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.models}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-muted-foreground">{unsupportedNote}</p>
+        </>
+      )}
+    </section>
+  );
+}
+
+
 function Faq() {
   return (
     <section id="faq" className="mx-auto grid max-w-7xl gap-12 px-5 py-20 lg:grid-cols-[0.75fr_1.25fr] lg:px-8 lg:py-28"><SectionHead label="Good to know" title="Questions, answered plainly." body="Everything you need before you connect." /><Accordion type="single" collapsible>{faqs.map((item) => <AccordionItem key={item.q} value={item.q}><AccordionTrigger className="py-5 text-left text-base font-bold hover:no-underline">{item.q}</AccordionTrigger><AccordionContent className="max-w-2xl pb-5 leading-relaxed text-muted-foreground">{item.a}</AccordionContent></AccordionItem>)}</Accordion></section>
