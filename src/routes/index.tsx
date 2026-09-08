@@ -159,7 +159,9 @@ function Plans() {
 function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open: boolean; onOpenChange: (open: boolean) => void }) {
   const checkout = useServerFn(beginCheckout);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
