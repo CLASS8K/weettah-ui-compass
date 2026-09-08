@@ -23,14 +23,15 @@ export const getAdminOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { email, supabaseAdmin } = await assertAdmin(context);
-    const [{ data: orders, error }, { count: plans }] = await Promise.all([
+    const [{ data: recentOrders, error }, { data: statuses }, { count: plans }] = await Promise.all([
       supabaseAdmin.from("payment_orders")
         .select("merchant_reference, country, amount_minor, currency, status, fulfillment_status, customer_email, created_at")
         .order("created_at", { ascending: false }).limit(8),
+      supabaseAdmin.from("payment_orders").select("status, fulfillment_status"),
       supabaseAdmin.from("plans").select("id", { count: "exact", head: true }).eq("is_active", true),
     ]);
     if (error) throw new Error("Unable to load operations overview");
-    const all = orders ?? [];
+    const all = statuses ?? [];
     return {
       email,
       activePlans: plans ?? 0,
@@ -41,7 +42,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
         failed: all.filter((item) => item.fulfillment_status === "failed").length,
         ready: all.filter((item) => item.fulfillment_status === "ready").length,
       },
-      recentOrders: all,
+      recentOrders: recentOrders ?? [],
     };
   });
 

@@ -193,7 +193,7 @@ function CheckoutDialog({ plan, open, onOpenChange }: { plan: Plan | null; open:
             </DialogHeader>
             <div className="mt-6 flex items-end justify-between border-t border-secondary-foreground/20 pt-5">
               <span className="text-sm text-secondary-foreground/70">Total due</span>
-              <span className="font-display text-3xl font-extrabold">{plan.price} USD</span>
+              <span className="font-display text-3xl font-extrabold">{plan.price}</span>
             </div>
           </div>
           <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">
