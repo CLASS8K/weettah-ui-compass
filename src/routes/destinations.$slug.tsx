@@ -108,7 +108,9 @@ function DestinationPage() {
             <p className="mt-8 text-5xl" aria-hidden>{destination.flag}</p>
             <h1 className="mt-4 max-w-3xl text-4xl font-extrabold leading-tight sm:text-6xl">{destination.country} travel eSIM</h1>
             <p className="mt-5 max-w-2xl leading-relaxed text-secondary-foreground/80">
-              Land in {destination.country} already online. Install before you fly, keep your usual number for calls and messages, and pay one clear price from {destination.fromPrice} — no roaming bills waiting when you get home.
+              {guide?.intro
+                ? guide.intro
+                : `Land in ${destination.country} already online. Install before you fly, keep your usual number for calls and messages, and pay one clear price from ${destination.fromPrice} — no roaming bills waiting when you get home.`}
             </p>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold">
               <span className="flex items-center gap-2"><Check className="text-surface" />Keep your number</span>
