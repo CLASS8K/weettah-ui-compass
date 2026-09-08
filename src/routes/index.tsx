@@ -74,7 +74,7 @@ function Hero() {
       <div className="relative mx-auto flex min-h-[calc(84svh-4rem)] max-w-7xl items-end px-5 py-12 sm:items-center lg:px-8 lg:py-20">
         <div className="max-w-3xl">
           <p className="mb-5 text-sm font-bold uppercase text-surface">African-made · Worldwide connection</p>
-          <h1 className="text-5xl font-extrabold leading-[0.96] sm:text-7xl lg:text-8xl">Made here.<br /><span className="text-surface">Ready everywhere.</span></h1>
+          <h1 className="text-4xl font-extrabold leading-[0.98] sm:text-7xl lg:text-8xl">Made here.<br /><span className="text-surface">Ready <span className="block sm:inline">everywhere.</span></span></h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-secondary-foreground/85 sm:text-lg">Fast, fair travel data built with African journeys in mind. Choose a plan, install in minutes, and arrive online in 180+ countries.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button size="lg" className="h-12 px-6" asChild><a href="#destinations">Find your destination <ArrowRight /></a></Button>
