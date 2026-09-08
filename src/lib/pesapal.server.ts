@@ -1,4 +1,4 @@
-import { plans } from "@/components/site/data";
+import { getIntegrationSettings } from "./integration-settings.server";
 
 type Customer = {
   firstName: string;
@@ -17,17 +17,30 @@ type PesapalStatus = {
   merchant_reference?: string;
 };
 
-const getBaseUrl = () =>
-  process.env["PESAPAL_ENV"] === "live"
-    ? "https://pay.pesapal.com/v3/api"
-    : "https://cybqa.pesapal.com/pesapalv3/api";
+async function getConfiguration() {
+  try {
+    const settings = await getIntegrationSettings("pesapal");
+    return {
+      baseUrl: settings.api_base_url || (settings.environment === "live" ? "https://pay.pesapal.com/v3/api" : "https://cybqa.pesapal.com/pesapalv3/api"),
+      consumerKey: settings.credentials["consumerKey"],
+      consumerSecret: settings.credentials["consumerSecret"],
+      notificationId: settings.notification_id,
+    };
+  } catch {
+    return {
+      baseUrl: process.env["PESAPAL_ENV"] === "live" ? "https://pay.pesapal.com/v3/api" : "https://cybqa.pesapal.com/pesapalv3/api",
+      consumerKey: process.env["PESAPAL_CONSUMER_KEY"],
+      consumerSecret: process.env["PESAPAL_CONSUMER_SECRET"],
+      notificationId: process.env["PESAPAL_NOTIFICATION_ID"] || null,
+    };
+  }
+}
 
 async function getToken() {
-  const consumerKey = process.env["PESAPAL_CONSUMER_KEY"];
-  const consumerSecret = process.env["PESAPAL_CONSUMER_SECRET"];
+  const { baseUrl, consumerKey, consumerSecret } = await getConfiguration();
   if (!consumerKey || !consumerSecret) throw new Error("PESAPAL_NOT_CONFIGURED");
 
-  const response = await fetch(`${getBaseUrl()}/Auth/RequestToken`, {
+  const response = await fetch(`${baseUrl}/Auth/RequestToken`, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify({ consumer_key: consumerKey, consumer_secret: consumerSecret }),
@@ -38,10 +51,10 @@ async function getToken() {
 }
 
 async function getNotificationId(token: string, origin: string) {
-  const configuredId = process.env["PESAPAL_NOTIFICATION_ID"];
+  const { baseUrl, notificationId: configuredId } = await getConfiguration();
   if (configuredId) return configuredId;
 
-  const response = await fetch(`${getBaseUrl()}/URLSetup/RegisterIPN`, {
+  const response = await fetch(`${baseUrl}/URLSetup/RegisterIPN`, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({
@@ -55,22 +68,24 @@ async function getNotificationId(token: string, origin: string) {
 }
 
 export async function createPesapalCheckout(planId: string, customer: Customer, origin: string) {
-  const plan = plans.find((item) => item.id === planId);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: plan } = await supabaseAdmin.from("plans")
+    .select("id, country, data_allowance, validity_days, amount_minor, currency")
+    .eq("id", planId).eq("is_active", true).maybeSingle();
   if (!plan) throw new Error("PLAN_NOT_FOUND");
 
   const token = await getToken();
   const notificationId = await getNotificationId(token, origin);
   const reference = `WEETTAH-${crypto.randomUUID()}`;
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const { error: insertError } = await supabaseAdmin.from("payment_orders").insert({
     merchant_reference: reference,
     plan_id: plan.id,
     country: plan.country,
-    data_allowance: plan.data,
-    validity_days: plan.days,
-    amount_minor: plan.amountMinor,
-    currency: "USD",
+    data_allowance: plan.data_allowance,
+    validity_days: plan.validity_days,
+    amount_minor: plan.amount_minor,
+    currency: plan.currency,
     customer_email: customer.email,
     customer_first_name: customer.firstName,
     customer_last_name: customer.lastName,
@@ -78,14 +93,15 @@ export async function createPesapalCheckout(planId: string, customer: Customer, 
   });
   if (insertError) throw new Error("Unable to create your order");
 
-  const response = await fetch(`${getBaseUrl()}/Transactions/SubmitOrderRequest`, {
+  const { baseUrl } = await getConfiguration();
+  const response = await fetch(`${baseUrl}/Transactions/SubmitOrderRequest`, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({
       id: reference,
-      currency: "USD",
-      amount: plan.amountMinor / 100,
-      description: `${plan.country} ${plan.data} travel eSIM`,
+      currency: plan.currency,
+      amount: plan.amount_minor / 100,
+      description: `${plan.country} ${plan.data_allowance} travel eSIM`,
       callback_url: `${origin}/checkout`,
       cancellation_url: `${origin}/checkout?cancelled=true&reference=${encodeURIComponent(reference)}`,
       notification_id: notificationId,
@@ -122,8 +138,9 @@ function mapStatus(code?: number) {
 
 export async function verifyPesapalOrder(orderTrackingId: string, merchantReference?: string) {
   const token = await getToken();
+  const { baseUrl } = await getConfiguration();
   const response = await fetch(
-    `${getBaseUrl()}/Transactions/GetTransactionStatus?orderTrackingId=${encodeURIComponent(orderTrackingId)}`,
+    `${baseUrl}/Transactions/GetTransactionStatus?orderTrackingId=${encodeURIComponent(orderTrackingId)}`,
     { headers: { Accept: "application/json", Authorization: `Bearer ${token}` } },
   );
   const result = (await response.json()) as PesapalStatus;
