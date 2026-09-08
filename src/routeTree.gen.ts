@@ -19,6 +19,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminIntegrationsRouteImport } from './routes/_authenticated/admin.integrations'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
 import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin.packages'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as ApiPublicActivationQrRouteImport } from './routes/api/public/activation/qr'
 import { Route as ApiPublicPesapalIpnRouteImport } from './routes/api/public/pesapal/ipn'
 
@@ -74,6 +75,12 @@ const AuthenticatedAdminPackagesRoute =
     path: '/packages',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminReportsRoute =
+  AuthenticatedAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicActivationQrRoute = ApiPublicActivationQrRouteImport.update({
   id: '/api/public/activation/qr',
   path: '/api/public/activation/qr',
@@ -94,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
   '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
@@ -106,6 +114,7 @@ export interface FileRoutesByTo {
   '/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
   '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
@@ -121,6 +130,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/integrations': typeof AuthenticatedAdminIntegrationsRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
   '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/admin/integrations'
     | '/admin/orders'
     | '/admin/packages'
+    | '/admin/reports'
     | '/admin/'
     | '/api/public/activation/qr'
     | '/api/public/pesapal/ipn'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/admin/integrations'
     | '/admin/orders'
     | '/admin/packages'
+    | '/admin/reports'
     | '/admin'
     | '/api/public/activation/qr'
     | '/api/public/pesapal/ipn'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/integrations'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/packages'
+    | '/_authenticated/admin/reports'
     | '/_authenticated/admin/'
     | '/api/public/activation/qr'
     | '/api/public/pesapal/ipn'
@@ -249,6 +262,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPackagesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/reports': {
+      id: '/_authenticated/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/activation/qr': {
       id: '/api/public/activation/qr'
       path: '/api/public/activation/qr'
@@ -270,6 +290,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIntegrationsRoute: typeof AuthenticatedAdminIntegrationsRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminPackagesRoute: typeof AuthenticatedAdminPackagesRoute
+  AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -277,6 +298,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIntegrationsRoute: AuthenticatedAdminIntegrationsRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedAdminPackagesRoute: AuthenticatedAdminPackagesRoute,
+  AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 

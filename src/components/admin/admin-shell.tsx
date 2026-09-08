@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Boxes, LayoutDashboard, LogOut, Plug, ReceiptText } from "lucide-react";
+import { BarChart3, Boxes, LayoutDashboard, LogOut, Plug, ReceiptText } from "lucide-react";
 import weettahLogo from "@/assets/weettah-logo.png";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 const links = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/orders", label: "Orders", icon: ReceiptText },
+  { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   { to: "/admin/packages", label: "Packages", icon: Boxes },
   { to: "/admin/integrations", label: "Integrations", icon: Plug },
 ] as const;

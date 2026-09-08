@@ -195,3 +195,18 @@ export async function verifyPesapalOrder(orderTrackingId: string, merchantRefere
     activationToken: order.activation_token,
   };
 }
+export async function registerPesapalIpn(callbackUrl: string) {
+  const token = await getToken();
+  const { baseUrl } = await getConfiguration();
+  const response = await fetch(`${baseUrl}/URLSetup/RegisterIPN`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ url: callbackUrl, ipn_notification_type: "GET" }),
+  });
+  const result = (await response.json()) as { ipn_id?: string; message?: string };
+  if (!response.ok || !result.ipn_id) throw new Error(result.message || "Pesapal rejected this notification URL");
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("integration_settings").update({ notification_id: result.ipn_id }).eq("id", "pesapal");
+  return { notificationId: result.ipn_id, url: callbackUrl };
+}

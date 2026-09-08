@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, RotateCw, Search } from "lucide-react";
+import { Download, Loader2, RotateCw, Search } from "lucide-react";
 import { useState } from "react";
 import { AdminShell, StatusBadge } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { listAdminOrders, retryAdminFulfillment } from "@/lib/admin.functions";
+import { exportAdminOrders, listAdminOrders, retryAdminFulfillment } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/orders")({
   head: () => ({ meta: [
@@ -23,11 +23,27 @@ function OrdersPage() {
   const [fulfillment, setFulfillment] = useState<"all" | "not_started" | "provisioning" | "ready" | "failed">("all");
   const load = useServerFn(listAdminOrders);
   const retry = useServerFn(retryAdminFulfillment);
+  const exportOrders = useServerFn(exportAdminOrders);
   const client = useQueryClient();
   const orders = useQuery({ queryKey: ["admin-orders", search, status, fulfillment], queryFn: () => load({ data: { query: search, status, fulfillment } }) });
   const mutation = useMutation({ mutationFn: (reference: string) => retry({ data: { reference } }), onSuccess: () => client.invalidateQueries({ queryKey: ["admin-orders"] }) });
+  const download = useMutation({
+    mutationFn: () => exportOrders({ data: { query: search, status, fulfillment } }),
+    onSuccess: (result) => {
+      const url = URL.createObjectURL(new Blob([result.csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url; link.download = result.filename;
+      document.body.appendChild(link); link.click(); link.remove();
+      URL.revokeObjectURL(url);
+    },
+  });
   return (
     <AdminShell title="Orders" description="Review payment and fulfillment status, find customer orders, and retry failed activations.">
+      <div className="mb-4 flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => download.mutate()} disabled={download.isPending}>
+          {download.isPending ? <Loader2 className="animate-spin" /> : <Download />}Export CSV
+        </Button>
+      </div>
       <div className="grid gap-3 sm:grid-cols-[1fr_12rem_12rem]">
         <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input className="pl-10" placeholder="Reference, customer, or country" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
         <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}><SelectTrigger aria-label="Payment status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All payments</SelectItem><SelectItem value="pending">Pending</SelectItem><SelectItem value="completed">Completed</SelectItem><SelectItem value="failed">Failed</SelectItem><SelectItem value="cancelled">Cancelled</SelectItem><SelectItem value="invalid">Invalid</SelectItem></SelectContent></Select>
