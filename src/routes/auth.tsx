@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
+  ssr: false,
   head: () => ({ meta: [
     { title: "Operations sign in — Weettah" },
     { name: "description", content: "Secure sign in for Weettah operations." },

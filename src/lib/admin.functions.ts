@@ -62,7 +62,8 @@ export const listAdminOrders = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false }).limit(100);
     if (data.status !== "all") query = query.eq("status", data.status);
     if (data.fulfillment !== "all") query = query.eq("fulfillment_status", data.fulfillment);
-    if (data.query) query = query.or(`merchant_reference.ilike.%${data.query}%,customer_email.ilike.%${data.query}%,country.ilike.%${data.query}%`);
+    const safeQuery = data.query.replace(/[^a-zA-Z0-9@._+\- ]/g, "").trim();
+    if (safeQuery) query = query.or(`merchant_reference.ilike.%${safeQuery}%,customer_email.ilike.%${safeQuery}%,country.ilike.%${safeQuery}%`);
     const { data: orders, error } = await query;
     if (error) throw new Error("Unable to load orders");
     return orders;
