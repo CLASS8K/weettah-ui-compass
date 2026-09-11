@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const APPROVED_ADMINS = new Set(["admin@takeflyt.com", "admin@weettah.com"]);
+const APPROVED_ADMINS = new Set(["admin@weettah.com", "frankntaukira@gmail.com"]);
 
 async function assertAdmin(context: { supabase: any; userId: string }) {
   const { data: userData, error: userError } = await context.supabase.auth.getUser();
