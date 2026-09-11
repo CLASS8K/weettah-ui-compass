@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestUrl } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const checkoutSchema = z.object({
@@ -10,23 +9,35 @@ const checkoutSchema = z.object({
   phone: z.string().trim().min(7).max(24).regex(/^\+?[0-9 ()-]+$/),
 });
 
-export const beginCheckout = createServerFn({ method: "POST" })
+// Payment gateways are not connected yet. Orders are recorded as pending
+// reservations so nothing is lost, and the team follows up manually.
+export const requestOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => checkoutSchema.parse(input))
   .handler(async ({ data }) => {
-    const { createPesapalCheckout } = await import("./pesapal.server");
-    try {
-      return { ok: true as const, ...(await createPesapalCheckout(data.planId, data, getRequestUrl().origin)) };
-    } catch (error) {
-      if (error instanceof Error && error.message === "PESAPAL_NOT_CONFIGURED") {
-        return { ok: false as const, reason: "not_configured" as const };
-      }
-      throw error;
-    }
-  });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: plan } = await supabaseAdmin
+      .from("plans")
+      .select("id, country, data_allowance, validity_days, amount_minor, currency")
+      .eq("id", data.planId)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (!plan) throw new Error("This plan is no longer available");
 
-export const checkPayment = createServerFn({ method: "GET" })
-  .inputValidator((input) => z.object({ trackingId: z.string().uuid(), reference: z.string().optional() }).parse(input))
-  .handler(async ({ data }) => {
-    const { verifyPesapalOrder } = await import("./pesapal.server");
-    return verifyPesapalOrder(data.trackingId, data.reference);
+    const reference = `WEETTAH-${crypto.randomUUID()}`;
+    const { error } = await supabaseAdmin.from("payment_orders").insert({
+      merchant_reference: reference,
+      plan_id: plan.id,
+      country: plan.country,
+      data_allowance: plan.data_allowance,
+      validity_days: plan.validity_days,
+      amount_minor: plan.amount_minor,
+      currency: plan.currency,
+      customer_email: data.email,
+      customer_first_name: data.firstName,
+      customer_last_name: data.lastName,
+      customer_phone: data.phone,
+    });
+    if (error) throw new Error("Unable to save your request");
+
+    return { ok: true as const, reference };
   });
