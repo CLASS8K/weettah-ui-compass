@@ -40,7 +40,7 @@ export async function decryptCredentials(value: string | null): Promise<Credenti
   return JSON.parse(decoder.decode(decrypted)) as CredentialMap;
 }
 
-export async function getIntegrationSettings(id: "esim_access" | "pesapal") {
+export async function getIntegrationSettings(id: "esim_access") {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin.from("integration_settings").select("*").eq("id", id).maybeSingle();
   if (error || !data) throw new Error("Integration settings not found");

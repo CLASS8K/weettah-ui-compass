@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as MyEsimRouteImport } from './routes/my-esim'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as DestinationsIndexRouteImport } from './routes/destinations.index'
@@ -26,7 +25,6 @@ import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin.packages'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as ApiPublicActivationQrRouteImport } from './routes/api/public/activation/qr'
-import { Route as ApiPublicPesapalIpnRouteImport } from './routes/api/public/pesapal/ipn'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -45,11 +43,6 @@ const ActivateRoute = ActivateRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckoutRoute = CheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyEsimRoute = MyEsimRouteImport.update({
@@ -118,17 +111,11 @@ const ApiPublicActivationQrRoute = ApiPublicActivationQrRouteImport.update({
   path: '/api/public/activation/qr',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicPesapalIpnRoute = ApiPublicPesapalIpnRouteImport.update({
-  id: '/api/public/pesapal/ipn',
-  path: '/api/public/pesapal/ipn',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
-  '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/destinations/$slug': typeof DestinationsSlugRoute
@@ -141,13 +128,11 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
-  '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
-  '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
   '/destinations/$slug': typeof DestinationsSlugRoute
   '/destinations': typeof DestinationsIndexRoute
@@ -159,7 +144,6 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
-  '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -167,7 +151,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
-  '/checkout': typeof CheckoutRoute
   '/my-esim': typeof MyEsimRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/destinations/$slug': typeof DestinationsSlugRoute
@@ -180,7 +163,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/activation/qr': typeof ApiPublicActivationQrRoute
-  '/api/public/pesapal/ipn': typeof ApiPublicPesapalIpnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -188,7 +170,6 @@ export interface FileRouteTypes {
     | '/'
     | '/activate'
     | '/auth'
-    | '/checkout'
     | '/my-esim'
     | '/admin'
     | '/destinations/$slug'
@@ -201,13 +182,11 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/'
     | '/api/public/activation/qr'
-    | '/api/public/pesapal/ipn'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/activate'
     | '/auth'
-    | '/checkout'
     | '/my-esim'
     | '/destinations/$slug'
     | '/destinations'
@@ -219,14 +198,12 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin'
     | '/api/public/activation/qr'
-    | '/api/public/pesapal/ipn'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/activate'
     | '/auth'
-    | '/checkout'
     | '/my-esim'
     | '/_authenticated/admin'
     | '/destinations/$slug'
@@ -239,7 +216,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/'
     | '/api/public/activation/qr'
-    | '/api/public/pesapal/ipn'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,12 +223,10 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ActivateRoute: typeof ActivateRoute
   AuthRoute: typeof AuthRoute
-  CheckoutRoute: typeof CheckoutRoute
   MyEsimRoute: typeof MyEsimRoute
   DestinationsSlugRoute: typeof DestinationsSlugRoute
   DestinationsIndexRoute: typeof DestinationsIndexRoute
   ApiPublicActivationQrRoute: typeof ApiPublicActivationQrRoute
-  ApiPublicPesapalIpnRoute: typeof ApiPublicPesapalIpnRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -283,13 +257,6 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout': {
-      id: '/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-esim': {
@@ -376,13 +343,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicActivationQrRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/pesapal/ipn': {
-      id: '/api/public/pesapal/ipn'
-      path: '/api/public/pesapal/ipn'
-      fullPath: '/api/public/pesapal/ipn'
-      preLoaderRoute: typeof ApiPublicPesapalIpnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -425,12 +385,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ActivateRoute: ActivateRoute,
   AuthRoute: AuthRoute,
-  CheckoutRoute: CheckoutRoute,
   MyEsimRoute: MyEsimRoute,
   DestinationsSlugRoute: DestinationsSlugRoute,
   DestinationsIndexRoute: DestinationsIndexRoute,
   ApiPublicActivationQrRoute: ApiPublicActivationQrRoute,
-  ApiPublicPesapalIpnRoute: ApiPublicPesapalIpnRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

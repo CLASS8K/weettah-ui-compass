@@ -159,13 +159,15 @@ export const getAdminIntegrations = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await assertAdmin(context);
     const { data, error } = await supabaseAdmin.from("integration_settings")
       .select("id, provider_name, api_base_url, environment, notification_id, credential_hint, encrypted_credentials, updated_at")
+      // Payment gateways are not connected yet — only the eSIM supplier is shown.
+      .eq("id", "esim_access")
       .order("id");
     if (error) throw new Error("Unable to load integrations");
     return data.map(({ encrypted_credentials, ...item }) => ({ ...item, configured: Boolean(encrypted_credentials) }));
   });
 
 const integrationUpdate = z.object({
-  id: z.enum(["esim_access", "pesapal"]),
+  id: z.enum(["esim_access"]),
   providerName: z.string().min(2).max(80),
   apiBaseUrl: z.string().url().max(300),
   environment: z.enum(["test", "live"]),
@@ -174,13 +176,9 @@ const integrationUpdate = z.object({
   secondarySecret: z.string().max(1000),
 });
 
-function approvedApiBase(id: "esim_access" | "pesapal", environment: "test" | "live", value: string) {
+function approvedApiBase(_id: "esim_access", _environment: "test" | "live", value: string) {
   const normalized = value.replace(/\/+$/, "");
-  const allowed = id === "esim_access"
-    ? ["https://api.esimaccess.com/api/v1/open"]
-    : environment === "live"
-      ? ["https://pay.pesapal.com/v3/api"]
-      : ["https://cybqa.pesapal.com/pesapalv3/api"];
+  const allowed = ["https://api.esimaccess.com/api/v1/open"];
   if (!allowed.includes(normalized)) throw new Error("Use the official provider API address for this environment");
   return normalized;
 }
@@ -195,9 +193,8 @@ export const updateAdminIntegration = createServerFn({ method: "POST" })
     const { data: current } = await supabaseAdmin.from("integration_settings")
       .select("encrypted_credentials").eq("id", data.id).maybeSingle();
     const credentials = await decryptCredentials(current?.encrypted_credentials ?? null);
-    if (data.primarySecret) credentials[data.id === "esim_access" ? "accessCode" : "consumerKey"] = data.primarySecret;
-    if (data.secondarySecret) credentials["consumerSecret"] = data.secondarySecret;
-    const primary = credentials[data.id === "esim_access" ? "accessCode" : "consumerKey"];
+    if (data.primarySecret) credentials["accessCode"] = data.primarySecret;
+    const primary = credentials["accessCode"];
     const encrypted = Object.keys(credentials).length ? await encryptCredentials(credentials) : null;
     const { error } = await supabaseAdmin.from("integration_settings").update({
       provider_name: data.providerName,
@@ -209,21 +206,6 @@ export const updateAdminIntegration = createServerFn({ method: "POST" })
     }).eq("id", data.id);
     if (error) throw new Error("Unable to save integration");
     return { ok: true };
-  });
-const ipnInput = z.object({ url: z.string().url().max(300) });
-
-export const registerAdminIpn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) => ipnInput.parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const parsed = new URL(data.url);
-    const allowedHost = parsed.hostname === "weettah.com" || parsed.hostname.endsWith(".weettah.com") || parsed.hostname.endsWith(".lovable.app");
-    if (parsed.protocol !== "https:" || !allowedHost || parsed.pathname !== "/api/public/pesapal/ipn") {
-      throw new Error("Use your live site address ending in /api/public/pesapal/ipn");
-    }
-    const { registerPesapalIpn } = await import("./pesapal.server");
-    return registerPesapalIpn(parsed.toString());
   });
 
 type ReportOrder = {
