@@ -1,19 +1,20 @@
 import { useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CreditCard, Loader2, LockKeyhole, ShieldCheck, Smartphone } from "lucide-react";
+import { CheckCircle2, Loader2, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { beginCheckout } from "@/lib/payments.functions";
+import { requestOrder } from "@/lib/payments.functions";
 import type { PublicPlan } from "@/lib/plans.functions";
 
 export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan | null; open: boolean; onOpenChange: (open: boolean) => void }) {
-  const checkout = useServerFn(beginCheckout);
+  const reserve = useServerFn(requestOrder);
   const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [reference, setReference] = useState<string | null>(null);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,20 +23,16 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
     setNotice(null);
     const values = new FormData(event.currentTarget);
     try {
-      const result = await checkout({ data: {
+      const result = await reserve({ data: {
         planId: plan.id,
         firstName: String(values.get("firstName") || ""),
         lastName: String(values.get("lastName") || ""),
         email: String(values.get("email") || ""),
         phone: String(values.get("phone") || ""),
       } });
-      if (!result.ok) {
-        setNotice("Checkout is ready in test mode. Pesapal merchant credentials are still needed before payments can open.");
-        return;
-      }
-      window.location.assign(result.redirectUrl);
+      setReference(result.reference);
     } catch {
-      setNotice("We couldn't start checkout. Please check your details and try again.");
+      setNotice("We couldn't save your request. Please check your details and try again.");
     } finally {
       setSubmitting(false);
     }
