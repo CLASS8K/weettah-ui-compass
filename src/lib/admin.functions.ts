@@ -191,9 +191,8 @@ export const updateAdminIntegration = createServerFn({ method: "POST" })
     const { data: current } = await supabaseAdmin.from("integration_settings")
       .select("encrypted_credentials").eq("id", data.id).maybeSingle();
     const credentials = await decryptCredentials(current?.encrypted_credentials ?? null);
-    if (data.primarySecret) credentials[data.id === "esim_access" ? "accessCode" : "consumerKey"] = data.primarySecret;
-    if (data.secondarySecret) credentials["consumerSecret"] = data.secondarySecret;
-    const primary = credentials[data.id === "esim_access" ? "accessCode" : "consumerKey"];
+    if (data.primarySecret) credentials["accessCode"] = data.primarySecret;
+    const primary = credentials["accessCode"];
     const encrypted = Object.keys(credentials).length ? await encryptCredentials(credentials) : null;
     const { error } = await supabaseAdmin.from("integration_settings").update({
       provider_name: data.providerName,
