@@ -205,21 +205,6 @@ export const updateAdminIntegration = createServerFn({ method: "POST" })
     if (error) throw new Error("Unable to save integration");
     return { ok: true };
   });
-const ipnInput = z.object({ url: z.string().url().max(300) });
-
-export const registerAdminIpn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) => ipnInput.parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context);
-    const parsed = new URL(data.url);
-    const allowedHost = parsed.hostname === "weettah.com" || parsed.hostname.endsWith(".weettah.com") || parsed.hostname.endsWith(".lovable.app");
-    if (parsed.protocol !== "https:" || !allowedHost || parsed.pathname !== "/api/public/pesapal/ipn") {
-      throw new Error("Use your live site address ending in /api/public/pesapal/ipn");
-    }
-    const { registerPesapalIpn } = await import("./pesapal.server");
-    return registerPesapalIpn(parsed.toString());
-  });
 
 type ReportOrder = {
   country: string;
