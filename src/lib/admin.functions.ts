@@ -165,7 +165,7 @@ export const getAdminIntegrations = createServerFn({ method: "GET" })
   });
 
 const integrationUpdate = z.object({
-  id: z.enum(["esim_access", "pesapal"]),
+  id: z.enum(["esim_access"]),
   providerName: z.string().min(2).max(80),
   apiBaseUrl: z.string().url().max(300),
   environment: z.enum(["test", "live"]),
@@ -174,13 +174,9 @@ const integrationUpdate = z.object({
   secondarySecret: z.string().max(1000),
 });
 
-function approvedApiBase(id: "esim_access" | "pesapal", environment: "test" | "live", value: string) {
+function approvedApiBase(_id: "esim_access", _environment: "test" | "live", value: string) {
   const normalized = value.replace(/\/+$/, "");
-  const allowed = id === "esim_access"
-    ? ["https://api.esimaccess.com/api/v1/open"]
-    : environment === "live"
-      ? ["https://pay.pesapal.com/v3/api"]
-      : ["https://cybqa.pesapal.com/pesapalv3/api"];
+  const allowed = ["https://api.esimaccess.com/api/v1/open"];
   if (!allowed.includes(normalized)) throw new Error("Use the official provider API address for this environment");
   return normalized;
 }
