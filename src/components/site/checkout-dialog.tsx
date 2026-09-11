@@ -98,10 +98,11 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
             </div>
             {notice && <p role="alert" className="rounded-md bg-surface px-4 py-3 text-sm font-semibold text-surface-foreground">{notice}</p>}
             <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting || !confirmed}>
-              {submitting ? <><Loader2 className="animate-spin" />Opening secure payment…</> : <><LockKeyhole />Continue to payment · {plan.price}</>}
+              {submitting ? <><Loader2 className="animate-spin" />Sending your request…</> : <><LockKeyhole />Reserve this eSIM · {plan.price}</>}
             </Button>
             <p className="text-center text-xs text-muted-foreground">By continuing, you agree to Weettah's terms and refund policy.</p>
           </form>
+          )}
         </>}
       </DialogContent>
     </Dialog>
