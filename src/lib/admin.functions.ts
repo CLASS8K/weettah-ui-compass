@@ -159,6 +159,8 @@ export const getAdminIntegrations = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await assertAdmin(context);
     const { data, error } = await supabaseAdmin.from("integration_settings")
       .select("id, provider_name, api_base_url, environment, notification_id, credential_hint, encrypted_credentials, updated_at")
+      // Payment gateways are not connected yet — only the eSIM supplier is shown.
+      .eq("id", "esim_access")
       .order("id");
     if (error) throw new Error("Unable to load integrations");
     return data.map(({ encrypted_credentials, ...item }) => ({ ...item, configured: Boolean(encrypted_credentials) }));
