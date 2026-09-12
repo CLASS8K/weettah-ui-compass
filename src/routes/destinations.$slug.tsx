@@ -20,7 +20,7 @@ export const Route = createFileRoute("/destinations/$slug")({
     }
     const { country, fromPrice, plans } = loaderData.destination;
     const title = `${country} travel eSIM — data plans from ${fromPrice} | Weettah`;
-    const description = `Stay online in ${country} with a Weettah eSIM. ${plans.length} data plan${plans.length === 1 ? "" : "s"} from ${fromPrice}, delivered in minutes. Pay by mobile money, Visa or Mastercard.`;
+    const description = `Stay online in ${country} with a Weettah eSIM. Compare ${plans.length} data plan${plans.length === 1 ? "" : "s"} from ${fromPrice}, with clear one-off pricing.`;
     return {
       meta: [
         { title },
