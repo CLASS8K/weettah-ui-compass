@@ -12,7 +12,7 @@ export const Route = createFileRoute("/destinations/")({
   head: () => ({
     meta: [
       { title: "Travel eSIM destinations — Weettah" },
-      { name: "description", content: "Browse Weettah travel eSIM data plans by country. Clear one-off prices, local network coverage, instant delivery — pay by mobile money or card." },
+      { name: "description", content: "Browse Weettah travel eSIM data plans by country, with clear one-off prices and local network coverage." },
       { property: "og:title", content: "Travel eSIM destinations — Weettah" },
       { property: "og:description", content: "Find a data plan for your next trip, from Africa to everywhere." },
       { property: "og:type", content: "website" },

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { faqs, serviceStats, steps, trustPoints, unsupportedNote } from "@/components/site/data";
 import { Footer, Header, SectionHead } from "@/components/site/chrome";
-import { CheckoutDialog } from "@/components/site/checkout-dialog";
 import { cn } from "@/lib/utils";
 import { detectDevice, type DeviceHint } from "@/lib/device-detect";
 import { getSupportedDevices } from "@/lib/devices.functions";
@@ -19,7 +18,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Weettah — Africa-first travel eSIM" },
-      { name: "description", content: "An African-made travel eSIM with instant mobile data for your trip. Clear prices, quick setup, mobile money or card, and support that understands your journey." },
+      { name: "description", content: "An African-made travel eSIM with clear prices, quick setup, and support that understands your journey." },
       { property: "og:title", content: "Weettah — Africa-first travel eSIM" },
       { property: "og:description", content: "Travel data made in Africa, for everywhere you go." },
       { property: "og:type", content: "website" },
@@ -88,14 +87,26 @@ function Plans() {
   const planList = plans ?? [];
   const [region, setRegion] = useState("All");
   const [query, setQuery] = useState("");
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const regions = useMemo(() => ["All", ...Array.from(new Set(planList.map((plan) => plan.region))).sort()], [planList]);
-  const visible = useMemo(() => planList.filter((plan) => (region === "All" || plan.region === region) && plan.country.toLowerCase().includes(query.trim().toLowerCase())), [planList, region, query]);
+  const destinations = useMemo(() => {
+    const grouped = new Map<string, { country: string; slug: string; flag: string; region: string; plans: Plan[]; popular: boolean }>();
+    for (const plan of planList) {
+      const item = grouped.get(plan.slug);
+      if (item) {
+        item.plans.push(plan);
+        item.popular ||= plan.popular;
+      } else {
+        grouped.set(plan.slug, { country: plan.country, slug: plan.slug, flag: plan.flag, region: plan.region, plans: [plan], popular: plan.popular });
+      }
+    }
+    return [...grouped.values()].sort((a, b) => Number(b.popular) - Number(a.popular) || a.country.localeCompare(b.country));
+  }, [planList]);
+  const regions = useMemo(() => ["All", ...Array.from(new Set(destinations.map((item) => item.region))).sort()], [destinations]);
+  const visible = useMemo(() => destinations.filter((item) => (region === "All" || item.region === region) && item.country.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 6), [destinations, region, query]);
   return (
     <section id="destinations" className="bg-secondary text-secondary-foreground">
       <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-          <SectionHead label="Go near. Go far." title="Where are you headed?" body="Straightforward prices. Local network coverage. No activation fee." />
+          <SectionHead label="Go near. Go far." title="Where are you headed?" body="Start with a destination. You'll compare data sizes and validity on the next page." />
           <div className="relative w-full lg:max-w-sm"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-foreground/60" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search a country" aria-label="Search a country" className="h-12 border-secondary-foreground/30 bg-secondary-foreground/10 pl-10 text-secondary-foreground placeholder:text-secondary-foreground/60" /></div>
         </div>
         <div className="mt-8 flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Filter plans by region">
@@ -103,7 +114,10 @@ function Plans() {
         </div>
         {visible.length === 0 ? <p className="py-16 text-center text-secondary-foreground/70">No plans found. Try another destination.</p> : (
           <div className="mt-8 grid gap-px overflow-hidden rounded-lg bg-secondary-foreground/20 sm:grid-cols-2 lg:grid-cols-4">
-            {visible.map((plan) => <article key={plan.id} className="flex min-h-64 flex-col bg-secondary p-6 transition-colors hover:bg-secondary-foreground/5"><div className="flex items-start justify-between"><span className="text-3xl" aria-hidden>{plan.flag}</span>{plan.popular && <span className="text-xs font-bold uppercase text-surface">Popular</span>}</div><h3 className="mt-8 text-xl font-bold"><Link to="/destinations/$slug" params={{ slug: plan.slug }} className="hover:underline">{plan.country}</Link></h3><p className="mt-1 text-sm text-secondary-foreground/65">{plan.data} · {plan.days} days</p><p className="mt-2 text-xs leading-relaxed text-secondary-foreground/55">One-off payment. Top up anytime if the data runs out — your plan never renews on its own.</p><div className="mt-auto flex items-end justify-between pt-8"><p><span className="text-xs text-secondary-foreground/60">Total, all in</span><span className="block font-display text-2xl font-extrabold">{plan.price}</span><span className="text-xs text-secondary-foreground/60">charged in US dollars</span></p><Button size="icon" aria-label={`Choose ${plan.country} plan`} onClick={() => setSelectedPlan(plan)}><ArrowRight /></Button></div></article>)}
+            {visible.map((destination) => {
+              const cheapest = [...destination.plans].sort((a, b) => a.amountMinor - b.amountMinor)[0];
+              return <article key={destination.slug} className="flex min-h-56 flex-col bg-secondary p-6 transition-colors hover:bg-secondary-foreground/5"><div className="flex items-start justify-between"><span className="text-3xl" aria-hidden>{destination.flag}</span>{destination.popular && <span className="text-xs font-bold uppercase text-surface">Popular</span>}</div><h3 className="mt-8 text-xl font-bold"><Link to="/destinations/$slug" params={{ slug: destination.slug }} className="hover:underline">{destination.country}</Link></h3><p className="mt-1 text-sm text-secondary-foreground/65">{destination.plans.length} {destination.plans.length === 1 ? "plan" : "plans"} available</p><div className="mt-auto flex items-end justify-between pt-8"><p><span className="text-xs text-secondary-foreground/60">Plans from</span><span className="block font-display text-2xl font-extrabold">{cheapest?.price}</span></p><Button size="icon" aria-label={`View ${destination.country} plans`} asChild><Link to="/destinations/$slug" params={{ slug: destination.slug }}><ArrowRight /></Link></Button></div></article>;
+            })}
           </div>
         )}
         <div className="mt-10">
@@ -112,7 +126,6 @@ function Plans() {
           </Button>
         </div>
       </div>
-      <CheckoutDialog plan={selectedPlan} open={selectedPlan !== null} onOpenChange={(open) => { if (!open) setSelectedPlan(null); }} />
     </section>
   );
 }
