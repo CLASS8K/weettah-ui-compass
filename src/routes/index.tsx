@@ -186,7 +186,10 @@ function Compatibility() {
   return (
     <section id="compatibility" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
       <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-        <SectionHead label="Before you pay" title="Will it work on your phone?" body="We take a first guess from the phone you're browsing on, then you can search to be sure. Buying an eSIM your phone can't use is the one mistake we'd rather you never make." />
+        <div>
+          <SectionHead label="Before you pay" title="Will it work on your phone?" body="We take a first guess from the phone you're browsing on, then you can search to be sure. Buying an eSIM your phone can't use is the one mistake we'd rather you never make." />
+          <p className="mt-3 text-sm text-muted-foreground">New to eSIM? It's a digital SIM built into your phone — no card to swap.</p>
+        </div>
         <div className="relative w-full lg:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="e.g. iPhone 13, Galaxy S22" aria-label="Search your phone model" className="h-12 pl-10" />

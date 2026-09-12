@@ -20,6 +20,10 @@ export const steps = [
 
 export const faqs = [
   {
+    q: "What's an eSIM, in one line?",
+    a: "An eSIM is a digital SIM already built into your phone. You install it with a tap or scan — no physical card to swap, and your usual number keeps working for calls and texts.",
+  },
+  {
     q: "Will my phone work with an eSIM?",
     a: "Most phones released after 2018 support eSIM, including iPhone XS and newer, Google Pixel 3 and newer, and recent Samsung Galaxy S and Z models. Your phone also needs to be carrier-unlocked. If you're unsure, dial *#06# — if you see an EID number, you're good.",
   },
