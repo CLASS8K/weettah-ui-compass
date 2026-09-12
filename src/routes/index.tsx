@@ -14,7 +14,13 @@ import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
 
 
 export const Route = createFileRoute("/")({
-  loader: async () => ({ plans: await getPublicPlans(), devices: await getSupportedDevices() }),
+  loader: async () => {
+    const [plans, devices] = await Promise.all([
+      getPublicPlans().catch(() => []),
+      getSupportedDevices().catch(() => []),
+    ]);
+    return { plans: plans ?? [], devices: devices ?? [] };
+  },
   head: () => ({
     meta: [
       { title: "Weettah — Africa-first travel eSIM" },
