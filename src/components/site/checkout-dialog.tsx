@@ -58,17 +58,65 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
           </div>
 
           {reference ? (
-            <div className="space-y-5 px-6 py-8 sm:px-8">
-              <CheckCircle2 className="h-9 w-9 text-accent" />
-              <div>
-                <h3 className="text-2xl font-extrabold">Request received</h3>
-                <p className="mt-2 leading-relaxed text-muted-foreground">Online payment isn't open yet, so we've saved your {plan.country} request. Our team will email you to arrange payment and send your eSIM.</p>
+            <div className="px-6 py-8 sm:px-8">
+              <div className="mx-auto max-w-md">
+                <div className="mb-6 flex items-center gap-2 text-accent">
+                  <CheckCircle2 className="h-6 w-6" />
+                  <span className="font-bold">Request received</span>
+                </div>
+                <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-lg">
+                  <div className="bg-secondary px-6 py-6 text-secondary-foreground">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-surface/80">Weettah eSIM</p>
+                        <p className="mt-1 font-display text-2xl font-extrabold">{plan.flag} {plan.country}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-surface/80">Data</p>
+                        <p className="mt-1 font-display text-2xl font-extrabold">{plan.data}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-center justify-between bg-secondary">
+                    <div className="h-5 w-5 -translate-x-2.5 rounded-full bg-background" />
+                    <div className="flex-1 border-t-2 border-dashed border-secondary-foreground/25" />
+                    <div className="h-5 w-5 translate-x-2.5 rounded-full bg-background" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-5 px-6 py-6">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Validity</p>
+                      <p className="mt-1 font-bold">{plan.days} days</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Price</p>
+                      <p className="mt-1 font-bold">{plan.price}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Booking reference</p>
+                      <p className="mt-1 break-all font-mono text-sm font-bold">{reference}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-amber-500" />
+                        <p className="text-sm font-bold">Awaiting payment</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-t border-border px-6 py-4">
+                    <div className="flex h-8 items-end gap-[2px]">
+                      {Array.from({ length: 48 }).map((_, i) => (
+                        <div key={i} className="flex-1 bg-foreground" style={{ height: `${[100, 40, 70, 100, 30, 60, 100, 45, 80, 55, 100, 35][i % 12]}%` }} />
+                      ))}
+                    </div>
+                    <p className="mt-2 text-center font-mono text-[10px] tracking-widest text-muted-foreground">{reference}</p>
+                  </div>
+                </div>
+                <p className="mt-5 text-center text-sm leading-relaxed text-muted-foreground">
+                  Online payment isn't open yet, so we've saved your {plan.country} request. Our team will email you to arrange payment and send your eSIM QR code.
+                </p>
+                <Button size="lg" className="mt-6 h-12 w-full" onClick={() => { setReference(null); onOpenChange(false); }}>Done</Button>
               </div>
-              <dl className="divide-y divide-border border-y border-border text-sm">
-                <div className="flex justify-between gap-6 py-4"><dt className="text-muted-foreground">Plan</dt><dd className="text-right font-bold">{plan.country} · {plan.data} · {plan.days} days</dd></div>
-                <div className="flex justify-between gap-6 py-4"><dt className="text-muted-foreground">Reference</dt><dd className="max-w-[65%] break-all text-right font-bold">{reference}</dd></div>
-              </dl>
-              <Button size="lg" className="h-12 w-full" onClick={() => { setReference(null); onOpenChange(false); }}>Done</Button>
             </div>
           ) : (
           <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">
