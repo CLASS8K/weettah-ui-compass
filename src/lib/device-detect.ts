@@ -1,3 +1,4 @@
+import { matchEsimAndroid } from "./esim-devices";
 export type DeviceHint = {
   name: string;
   verdict: "likely" | "unknown";
@@ -38,6 +39,15 @@ export function detectDevice(userAgent: string): DeviceHint | null {
   if (/Android/i.test(ua)) {
     const model = /Android [\d.]+;\s*([^;)]+?)(?:\s+Build)?[;)]/.exec(ua)?.[1]?.trim();
     const clean = model && model.length < 40 && !/^[a-z]{2}-[a-z]{2}$/i.test(model) ? model : undefined;
+    const matched = clean ? matchEsimAndroid(clean) : null;
+    if (matched) {
+      return {
+        name: matched,
+        verdict: "likely",
+        note: `Your ${matched} supports eSIM. You're all set — just complete your purchase and scan the QR code we send you.`,
+        search: matched,
+      };
+    }
     return {
       name: clean ? `Android — ${clean}` : "Android phone",
       verdict: "unknown",
