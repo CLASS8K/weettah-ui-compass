@@ -7,7 +7,8 @@
 - [x] Verify security, desktop/mobile UI, and build health
 
 # Growth features
-- [x] Pesapal payment-notification (IPN) registration from the admin panel
+- [x] Remove Pesapal and DPO until payment gateways are selected later
+- [x] Simplify homepage plan browsing into destination-first choices
 - [x] Admin order CSV export and sales/activation reporting
 - [x] Trust strip near the plans (refund promise, payment methods, delivery, support)
 - [x] Phone compatibility checker + required confirmation before payment

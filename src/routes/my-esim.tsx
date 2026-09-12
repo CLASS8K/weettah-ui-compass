@@ -25,7 +25,7 @@ export const Route = createFileRoute("/my-esim")({
 const statusCopy: Record<string, { title: string; body: string }> = {
   ready: { title: "Your eSIM is ready", body: "Open your install page to scan the QR code or copy the manual code." },
   preparing: { title: "We're preparing your eSIM", body: "This usually takes a minute or two. Refresh this page shortly." },
-  not_paid: { title: "Payment not completed", body: "We haven't received payment for this order yet. If you paid by mobile money, give it a moment and check again." },
+  not_paid: { title: "Payment pending", body: "Online payment is not available yet. Our team will contact you with the next steps for this order." },
   attention: { title: "Something needs our attention", body: "Your payment went through but the eSIM didn't issue. Contact support with this reference and we'll sort it out." },
 };
 
