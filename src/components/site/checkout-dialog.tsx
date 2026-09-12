@@ -74,7 +74,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
           <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">
             <div>
               <h3 className="font-bold">Where should we reach you?</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Card and mobile money payments are coming soon. For now we'll email you to complete your order and send your QR code.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Online payment is coming later. For now we'll email you to complete your order and send your QR code.</p>
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2"><Label htmlFor="firstName">First name</Label><Input id="firstName" name="firstName" autoComplete="given-name" required minLength={2} /></div>
