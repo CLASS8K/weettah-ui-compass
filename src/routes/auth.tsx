@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { claimAdminAccess } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: false },
   ssr: false,
   head: () => ({ meta: [
     { title: "Operations sign in — Weettah" },

@@ -8,6 +8,7 @@ import { getDestinations } from "@/lib/plans.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/destinations/")({
+  staticData: { sitemap: true },
   loader: async () => ({ destinations: await getDestinations() }),
   head: () => ({
     meta: [

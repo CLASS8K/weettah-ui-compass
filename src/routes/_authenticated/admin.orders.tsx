@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { exportAdminOrders, listAdminOrders, retryAdminFulfillment } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/orders")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Orders — Weettah Operations" }, { name: "description", content: "Manage Weettah payments and eSIM delivery." },
     { property: "og:title", content: "Orders — Weettah Operations" }, { property: "og:description", content: "Manage Weettah payments and eSIM delivery." },

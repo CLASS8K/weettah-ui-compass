@@ -9,6 +9,7 @@ import { getActivation } from "@/lib/activation.functions";
 type Activation = Awaited<ReturnType<typeof getActivation>>;
 
 export const Route = createFileRoute("/activate")({
+  staticData: { sitemap: false },
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search["token"] === "string" ? search["token"] : undefined,
   }),
