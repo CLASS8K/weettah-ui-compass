@@ -19,6 +19,7 @@ export const Route = createFileRoute("/auth")({
     { property: "og:description", content: "Secure sign in for Weettah operations." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
   ] }),
   component: AuthPage,
 });

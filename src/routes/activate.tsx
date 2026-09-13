@@ -20,6 +20,7 @@ export const Route = createFileRoute("/activate")({
     { property: "og:description", content: "Your private Weettah eSIM installation page." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
   ] }),
   component: ActivatePage,
 });
