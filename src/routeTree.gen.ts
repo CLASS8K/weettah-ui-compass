@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as MyEsimRouteImport } from './routes/my-esim'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as DestinationsIndexRouteImport } from './routes/destinations.index'
@@ -49,6 +50,11 @@ const AuthRoute = AuthRouteImport.update({
 const MyEsimRoute = MyEsimRouteImport.update({
   id: '/my-esim',
   path: '/my-esim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
   '/my-esim': typeof MyEsimRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/destinations/$slug': typeof DestinationsSlugRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
   '/my-esim': typeof MyEsimRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/health': typeof ApiHealthRoute
   '/destinations/$slug': typeof DestinationsSlugRoute
   '/destinations': typeof DestinationsIndexRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/activate': typeof ActivateRoute
   '/auth': typeof AuthRoute
   '/my-esim': typeof MyEsimRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/destinations/$slug': typeof DestinationsSlugRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/activate'
     | '/auth'
     | '/my-esim'
+    | '/sitemap.xml'
     | '/admin'
     | '/api/health'
     | '/destinations/$slug'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/activate'
     | '/auth'
     | '/my-esim'
+    | '/sitemap.xml'
     | '/api/health'
     | '/destinations/$slug'
     | '/destinations'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/activate'
     | '/auth'
     | '/my-esim'
+    | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/api/health'
     | '/destinations/$slug'
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   ActivateRoute: typeof ActivateRoute
   AuthRoute: typeof AuthRoute
   MyEsimRoute: typeof MyEsimRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiHealthRoute: typeof ApiHealthRoute
   DestinationsSlugRoute: typeof DestinationsSlugRoute
   DestinationsIndexRoute: typeof DestinationsIndexRoute
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       path: '/my-esim'
       fullPath: '/my-esim'
       preLoaderRoute: typeof MyEsimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -406,6 +426,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivateRoute: ActivateRoute,
   AuthRoute: AuthRoute,
   MyEsimRoute: MyEsimRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiHealthRoute: ApiHealthRoute,
   DestinationsSlugRoute: DestinationsSlugRoute,
   DestinationsIndexRoute: DestinationsIndexRoute,
