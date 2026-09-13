@@ -74,22 +74,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Weettah — Travel eSIM data in 180+ countries" },
-      {
-        name: "description",
-        content:
-          "Buy a travel eSIM in under a minute. Instant delivery, clear prices, data in 180+ countries.",
-      },
       { name: "author", content: "Weettah" },
-      { property: "og:title", content: "Weettah — Travel eSIM data in 180+ countries" },
-      {
-        property: "og:description",
-        content: "Instant eSIM delivery, clear prices and 24/7 human support.",
-      },
+      { property: "og:site_name", content: "Weettah" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
