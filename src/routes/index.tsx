@@ -14,6 +14,7 @@ import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
 
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   loader: async () => {
     const [plans, devices] = await Promise.all([
       getPublicPlans().catch(() => []),

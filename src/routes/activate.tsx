@@ -9,6 +9,7 @@ import { getActivation } from "@/lib/activation.functions";
 type Activation = Awaited<ReturnType<typeof getActivation>>;
 
 export const Route = createFileRoute("/activate")({
+  staticData: { sitemap: false },
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search["token"] === "string" ? search["token"] : undefined,
   }),
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/activate")({
     { property: "og:description", content: "Your private Weettah eSIM installation page." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
   ] }),
   component: ActivatePage,
 });

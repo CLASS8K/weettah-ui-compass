@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { deleteAdminDevice, listAdminDevices, saveAdminDevice } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/devices")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Phone check — Weettah Operations" },
     { name: "description", content: "Manage the phones listed in the Weettah eSIM compatibility checker." },

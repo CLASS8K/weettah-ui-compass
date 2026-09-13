@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { lookupOrder, type OrderLookupResult } from "@/lib/orders.functions";
 
 export const Route = createFileRoute("/my-esim")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Find my eSIM — Weettah" },

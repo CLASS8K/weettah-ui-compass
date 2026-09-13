@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getAdminIntegrations, updateAdminIntegration } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/integrations")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Integrations — Weettah Operations" }, { name: "description", content: "Manage Weettah supplier connections." },
     { property: "og:title", content: "Integrations — Weettah Operations" }, { property: "og:description", content: "Manage Weettah supplier connections." },

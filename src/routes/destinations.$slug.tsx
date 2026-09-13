@@ -9,6 +9,7 @@ import { faqs, steps } from "@/components/site/data";
 import { getDestination, type PublicPlan } from "@/lib/plans.functions";
 
 export const Route = createFileRoute("/destinations/$slug")({
+  staticData: { sitemap: true },
   loader: async ({ params }) => {
     const result = await getDestination({ data: { slug: params.slug } });
     if (!result.destination) throw notFound();

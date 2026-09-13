@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getAdminOverview } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Operations overview — Weettah" },
     { name: "description", content: "Weettah package, payment, and activation operations overview." },

@@ -16,6 +16,7 @@ import {
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/guides")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Destination guides — Weettah Operations" },
     { name: "description", content: "Write the local travel content shown on each Weettah destination page." },
