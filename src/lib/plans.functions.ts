@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 export type PublicPlan = {
   id: string;
@@ -28,8 +30,12 @@ function formatPrice(amountMinor: number, currency: string) {
 }
 
 async function loadActivePlans(): Promise<PublicPlan[]> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+  const supabasePublic = createClient<Database>(
+    process.env["SUPABASE_URL"]!,
+    process.env["SUPABASE_PUBLISHABLE_KEY"]!,
+    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+  );
+  const { data, error } = await supabasePublic
     .from("plans")
     .select("id, country, flag, region, data_allowance, validity_days, amount_minor, currency, is_popular")
     .eq("is_active", true)

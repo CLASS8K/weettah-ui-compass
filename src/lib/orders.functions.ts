@@ -28,14 +28,15 @@ export const lookupOrder = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin
       .from("payment_orders")
       .select(
-        "merchant_reference, country, data_allowance, validity_days, amount_minor, currency, created_at, status, fulfillment_status, activation_token",
+        "merchant_reference, country, data_allowance, validity_days, amount_minor, currency, created_at, status, fulfillment_status, activation_token, customer_email",
       )
       .eq("merchant_reference", data.reference)
-      .ilike("customer_email", data.email)
       .maybeSingle();
 
     if (error) throw new Error("Unable to look up this order");
-    if (!row) return { found: false };
+    // Exact, case-insensitive email match — never ILIKE, so wildcard
+    // characters in user input carry no special meaning.
+    if (!row || row.customer_email.trim().toLowerCase() !== data.email.toLowerCase()) return { found: false };
 
     const paid = row.status === "COMPLETED";
     const esimStatus = !paid
