@@ -94,6 +94,38 @@ export const listAdminOrders = createServerFn({ method: "POST" })
     return orders;
   });
 
+const markPaidSchema = z.object({ reference: z.string().min(1) });
+
+export const markOrderPaid = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => markPaidSchema.parse(input))
+  .handler(async ({ context, data }) => {
+    const { supabaseAdmin } = await assertAdmin(context);
+    const { data: order } = await supabaseAdmin
+      .from("payment_orders")
+      .select("merchant_reference, plan_id, country, data_allowance, validity_days, amount_minor, currency, customer_email, status, fulfillment_status, activation_token")
+      .eq("merchant_reference", data.reference)
+      .maybeSingle();
+    if (!order) throw new Error("Order not found");
+
+    // Mark as completed (paid manually)
+    await supabaseAdmin
+      .from("payment_orders")
+      .update({ status: "completed", payment_method: "manual" })
+      .eq("merchant_reference", data.reference);
+
+    // Trigger eSIM provisioning
+    if (order.fulfillment_status !== "ready") {
+      try {
+        const { provisionPaidOrder } = await import("./esim-access.server");
+        await provisionPaidOrder({ ...order, status: "completed" });
+      } catch (error) {
+        console.error("Provisioning failed after manual payment", error);
+      }
+    }
+    return { ok: true };
+  });
+
 export const retryAdminFulfillment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ reference: z.string().min(8).max(100) }).parse(input))
