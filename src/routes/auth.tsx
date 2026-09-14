@@ -87,8 +87,10 @@ function AuthPage() {
         </div>
       </section>
       <aside className="hidden bg-secondary p-16 text-secondary-foreground lg:flex lg:flex-col lg:justify-end">
-        <p className="text-sm font-bold uppercase text-surface">Built here. Managed here.</p>
-        <p className="mt-5 max-w-xl font-display text-5xl font-extrabold leading-tight">Packages, payments and activations in one calm workspace.</p>
+        <p className="text-sm font-bold uppercase text-surface">{adminIntent ? "Built here. Managed here." : "Your travel data, in one place."}</p>
+        <p className="mt-5 max-w-xl font-display text-5xl font-extrabold leading-tight">
+          {adminIntent ? "Packages, payments and activations in one calm workspace." : "Every order, every eSIM, ready whenever you travel."}
+        </p>
       </aside>
     </main>
   );
