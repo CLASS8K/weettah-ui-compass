@@ -54,7 +54,8 @@ function AuthPage() {
         // Admin access is only granted to approved addresses; everyone else
         // lands in their own customer portal.
         const isAdmin = await claimAccess().then(() => true).catch(() => false);
-        await navigate({ to: isAdmin && !customer ? "/admin" : search.redirect ?? "/account", replace: true });
+        if (isAdmin && !customer) await navigate({ to: "/admin", replace: true });
+        else await navigate({ to: "/account", replace: true });
       }
     } catch {
       setNotice(sent ? "That code is invalid or has expired. Request a fresh code and try again." : "We couldn't send the code. Check the address and try again.");
