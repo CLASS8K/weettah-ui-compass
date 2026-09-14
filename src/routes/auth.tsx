@@ -12,6 +12,9 @@ import { claimAdminAccess } from "@/lib/admin.functions";
 export const Route = createFileRoute("/auth")({
   staticData: { sitemap: false },
   ssr: false,
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search['redirect'] === "string" && search['redirect'].startsWith("/") ? search['redirect'] : undefined,
+  }),
   head: () => ({ meta: [
     { title: "Operations sign in — Weettah" },
     { name: "description", content: "Secure sign in for Weettah operations." },
