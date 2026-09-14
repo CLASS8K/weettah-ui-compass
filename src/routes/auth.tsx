@@ -30,7 +30,8 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const customer = search.redirect !== undefined && !search.redirect.startsWith("/admin");
+  const adminIntent = search.redirect?.startsWith("/admin") ?? false;
+  const customer = search.redirect !== undefined && !adminIntent;
   const claimAccess = useServerFn(claimAdminAccess);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
