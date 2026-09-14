@@ -58,7 +58,10 @@ function MyEsim() {
           <Link to="/" className="inline-flex items-center" aria-label="Weettah home">
             <img src={weettahLogo} alt="Weettah" width={1276} height={371} className="h-8 w-auto" />
           </Link>
-          <Button variant="ghost" size="sm" asChild><Link to="/">Buy a plan</Link></Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild><Link to="/account">My account</Link></Button>
+            <Button variant="ghost" size="sm" asChild><Link to="/">Buy a plan</Link></Button>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-14">

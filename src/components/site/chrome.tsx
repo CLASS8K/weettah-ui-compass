@@ -49,6 +49,7 @@ export function Header() {
               <a key={item.href} href={item.href} onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">{item.label}</a>
             ))}
             <Link to="/my-esim" onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">Find my eSIM</Link>
+            <Link to="/account" onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">My account</Link>
           </nav>
           <Button className="mt-5 w-full" asChild><Link to="/destinations" onClick={() => setOpen(false)}>Get connected <ArrowRight /></Link></Button>
         </div>
