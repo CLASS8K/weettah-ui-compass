@@ -317,6 +317,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      orders_for_email: {
+        Args: { _email: string }
+        Returns: {
+          activation_token: string
+          amount_minor: number
+          country: string
+          created_at: string
+          currency: string
+          data_allowance: string
+          fulfillment_status: string
+          merchant_reference: string
+          status: string
+          validity_days: number
+        }[]
+      }
     }
     Enums: {
       app_role: "supplier_admin"

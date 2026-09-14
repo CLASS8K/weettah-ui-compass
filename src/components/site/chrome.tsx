@@ -35,6 +35,7 @@ export function Header() {
         </nav>
         <div className="hidden items-center gap-2 md:flex">
           <Button variant="ghost" size="sm" asChild><Link to="/my-esim">Find my eSIM</Link></Button>
+          <Button variant="ghost" size="sm" asChild><Link to="/account">My account</Link></Button>
           <Button size="sm" asChild><Link to="/destinations">Get connected <ArrowRight /></Link></Button>
         </div>
         <Button variant="ghost" size="icon" className="md:hidden" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((value) => !value)}>
@@ -48,6 +49,7 @@ export function Header() {
               <a key={item.href} href={item.href} onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">{item.label}</a>
             ))}
             <Link to="/my-esim" onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">Find my eSIM</Link>
+            <Link to="/account" onClick={() => setOpen(false)} className="border-b border-border py-4 font-semibold">My account</Link>
           </nav>
           <Button className="mt-5 w-full" asChild><Link to="/destinations" onClick={() => setOpen(false)}>Get connected <ArrowRight /></Link></Button>
         </div>

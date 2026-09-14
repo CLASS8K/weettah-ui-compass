@@ -12,6 +12,10 @@ import { claimAdminAccess } from "@/lib/admin.functions";
 export const Route = createFileRoute("/auth")({
   staticData: { sitemap: false },
   ssr: false,
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
+    typeof search['redirect'] === "string" && search['redirect'].startsWith("/")
+      ? { redirect: search['redirect'] }
+      : {},
   head: () => ({ meta: [
     { title: "Operations sign in — Weettah" },
     { name: "description", content: "Secure sign in for Weettah operations." },
@@ -26,6 +30,9 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const adminIntent = search.redirect?.startsWith("/admin") ?? false;
+  const customer = search.redirect !== undefined && !adminIntent;
   const claimAccess = useServerFn(claimAdminAccess);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -46,8 +53,11 @@ function AuthPage() {
       } else {
         const { error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code.trim(), type: "email" });
         if (error) throw error;
-        await claimAccess();
-        await navigate({ to: "/admin", replace: true });
+        // Admin access is only granted to approved addresses; everyone else
+        // lands in their own customer portal.
+        const isAdmin = await claimAccess().then(() => true).catch(() => false);
+        if (isAdmin && !customer) await navigate({ to: "/admin", replace: true });
+        else await navigate({ to: "/account", replace: true });
       }
     } catch {
       setNotice(sent ? "That code is invalid or has expired. Request a fresh code and try again." : "We couldn't send the code. Check the address and try again.");
@@ -61,9 +71,13 @@ function AuthPage() {
       <section className="flex items-center px-5 py-10 sm:px-10 lg:px-16">
         <div className="w-full max-w-md">
           <a href="/" className="inline-flex rounded-sm bg-card px-2 py-1.5" aria-label="Weettah home"><img src={weettahLogo} alt="Weettah" width={1276} height={371} className="h-9 w-auto" /></a>
-          <p className="mt-12 text-xs font-bold uppercase text-primary">Private operations</p>
-          <h1 className="mt-3 text-4xl font-extrabold">Sign in to manage Weettah.</h1>
-          <p className="mt-4 leading-relaxed text-muted-foreground">Access is limited to approved, verified administrator email addresses.</p>
+          <p className="mt-12 text-xs font-bold uppercase text-primary">{adminIntent ? "Private operations" : "My account"}</p>
+          <h1 className="mt-3 text-4xl font-extrabold">{adminIntent ? "Sign in to manage Weettah." : "Sign in to your eSIMs."}</h1>
+          <p className="mt-4 leading-relaxed text-muted-foreground">
+            {adminIntent
+              ? "Access is limited to approved, verified administrator email addresses."
+              : "Use the email address you ordered with. We'll email you a six-digit code — no password to remember."}
+          </p>
           <form onSubmit={submit} className="mt-8 space-y-5">
             <div className="space-y-2"><Label htmlFor="admin-email">Email address</Label><Input id="admin-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={sent} required /></div>
             {sent && <div className="space-y-2"><Label htmlFor="admin-code">Six-digit code</Label><Input id="admin-code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(event) => setCode(event.target.value)} minLength={6} maxLength={8} required autoFocus /></div>}
@@ -74,8 +88,10 @@ function AuthPage() {
         </div>
       </section>
       <aside className="hidden bg-secondary p-16 text-secondary-foreground lg:flex lg:flex-col lg:justify-end">
-        <p className="text-sm font-bold uppercase text-surface">Built here. Managed here.</p>
-        <p className="mt-5 max-w-xl font-display text-5xl font-extrabold leading-tight">Packages, payments and activations in one calm workspace.</p>
+        <p className="text-sm font-bold uppercase text-surface">{adminIntent ? "Built here. Managed here." : "Your travel data, in one place."}</p>
+        <p className="mt-5 max-w-xl font-display text-5xl font-extrabold leading-tight">
+          {adminIntent ? "Packages, payments and activations in one calm workspace." : "Every order, every eSIM, ready whenever you travel."}
+        </p>
       </aside>
     </main>
   );
