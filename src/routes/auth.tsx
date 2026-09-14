@@ -70,12 +70,12 @@ function AuthPage() {
       <section className="flex items-center px-5 py-10 sm:px-10 lg:px-16">
         <div className="w-full max-w-md">
           <a href="/" className="inline-flex rounded-sm bg-card px-2 py-1.5" aria-label="Weettah home"><img src={weettahLogo} alt="Weettah" width={1276} height={371} className="h-9 w-auto" /></a>
-          <p className="mt-12 text-xs font-bold uppercase text-primary">{customer ? "My account" : "Private operations"}</p>
-          <h1 className="mt-3 text-4xl font-extrabold">{customer ? "Sign in to your eSIMs." : "Sign in to manage Weettah."}</h1>
+          <p className="mt-12 text-xs font-bold uppercase text-primary">{adminIntent ? "Private operations" : "My account"}</p>
+          <h1 className="mt-3 text-4xl font-extrabold">{adminIntent ? "Sign in to manage Weettah." : "Sign in to your eSIMs."}</h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            {customer
-              ? "Use the email address you ordered with. We'll email you a six-digit code — no password to remember."
-              : "Access is limited to approved, verified administrator email addresses."}
+            {adminIntent
+              ? "Access is limited to approved, verified administrator email addresses."
+              : "Use the email address you ordered with. We'll email you a six-digit code — no password to remember."}
           </p>
           <form onSubmit={submit} className="mt-8 space-y-5">
             <div className="space-y-2"><Label htmlFor="admin-email">Email address</Label><Input id="admin-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={sent} required /></div>
