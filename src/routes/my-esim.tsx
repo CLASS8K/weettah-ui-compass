@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { lookupOrder, type OrderLookupResult } from "@/lib/orders.functions";
+import { countryDisplayName } from "@/lib/country-names";
 
 export const Route = createFileRoute("/my-esim")({
   staticData: { sitemap: true },
@@ -91,7 +92,7 @@ function MyEsim() {
           <article className="mt-8 overflow-hidden rounded-lg border border-border">
             <div className="bg-secondary px-6 py-6 text-secondary-foreground">
               <p className="text-xs font-bold uppercase text-surface">Order {result.reference}</p>
-              <h2 className="mt-2 text-2xl font-extrabold">{result.country}</h2>
+              <h2 className="mt-2 text-2xl font-extrabold">{countryDisplayName(result.country)}</h2>
               <p className="mt-1 text-secondary-foreground/75">{result.data} · {result.days} days · {result.price}</p>
             </div>
             <div className="space-y-5 px-6 py-6">

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { countryDisplayName } from "@/lib/country-names";
 
 export type PublicPlan = {
   id: string;
@@ -43,7 +44,7 @@ async function loadActivePlans(): Promise<PublicPlan[]> {
   if (error) throw new Error("Unable to load plans");
   return (data ?? []).map((plan) => ({
     id: plan.id,
-    country: plan.country,
+    country: countryDisplayName(plan.country, plan.region),
     slug: slugify(plan.country),
     flag: plan.flag,
     region: plan.region,
@@ -54,6 +55,18 @@ async function loadActivePlans(): Promise<PublicPlan[]> {
     price: formatPrice(plan.amount_minor, plan.currency),
     popular: plan.is_popular,
   }));
+}
+
+// Popular first, then Africa (our home market), then A–Z by name.
+export function compareDestinations(
+  a: { popular: boolean; region: string; country: string },
+  b: { popular: boolean; region: string; country: string },
+) {
+  return (
+    Number(b.popular) - Number(a.popular) ||
+    Number(b.region === "Africa") - Number(a.region === "Africa") ||
+    a.country.localeCompare(b.country)
+  );
 }
 
 export const getPublicPlans = createServerFn({ method: "GET" }).handler(async () => loadActivePlans());
@@ -92,7 +105,7 @@ function groupDestinations(plans: PublicPlan[]): Destination[] {
     const cheapest = destination.plans[0];
     if (cheapest) destination.fromPrice = formatPrice(cheapest.amountMinor, cheapest.currency);
   }
-  return [...map.values()];
+  return [...map.values()].sort(compareDestinations);
 }
 
 export const getDestinations = createServerFn({ method: "GET" }).handler(async () =>

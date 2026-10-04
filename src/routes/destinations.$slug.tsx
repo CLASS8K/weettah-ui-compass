@@ -115,7 +115,7 @@ function DestinationPage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold">
               <span className="flex items-center gap-2"><Check className="text-surface" />Keep your number</span>
-              <span className="flex items-center gap-2"><Clock className="text-surface" />Delivered in about a minute</span>
+              <span className="flex items-center gap-2"><Clock className="text-surface" />QR code once you've paid</span>
               <span className="flex items-center gap-2"><ShieldCheck className="text-surface" />Refundable if unused</span>
             </div>
           </div>
@@ -180,7 +180,7 @@ function DestinationPage() {
                     <span className="block font-display text-2xl font-extrabold">{plan.price}</span>
                     <span className="text-xs text-muted-foreground">charged in US dollars</span>
                   </p>
-                  <Button onClick={() => setSelectedPlan(plan)}>Buy <ArrowRight /></Button>
+                  <Button onClick={() => setSelectedPlan(plan)}>Choose plan <ArrowRight /></Button>
                 </div>
               </article>
             ))}

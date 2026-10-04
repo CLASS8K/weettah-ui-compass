@@ -6,6 +6,7 @@ import { Wordmark } from "@/components/site/chrome";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyAccount, type AccountOrder } from "@/lib/account.functions";
+import { countryDisplayName } from "@/lib/country-names";
 
 export const Route = createFileRoute("/_authenticated/account")({
   staticData: { sitemap: false },
@@ -90,7 +91,7 @@ function AccountPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3 bg-secondary px-6 py-5 text-secondary-foreground">
                   <div>
                     <p className="text-xs font-bold uppercase text-surface">Order {order.reference}</p>
-                    <h2 className="mt-2 text-2xl font-extrabold">{order.country}</h2>
+                    <h2 className="mt-2 text-2xl font-extrabold">{countryDisplayName(order.country)}</h2>
                     <p className="mt-1 text-secondary-foreground/75">{order.data} · {order.days} days · {order.price}</p>
                   </div>
                   <span className="rounded-full bg-background px-3 py-1 text-xs font-bold text-foreground">{order.paymentStatus}</span>
