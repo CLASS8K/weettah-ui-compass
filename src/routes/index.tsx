@@ -10,7 +10,7 @@ import { Footer, Header, SectionHead } from "@/components/site/chrome";
 import { cn } from "@/lib/utils";
 import { detectDevice, type DeviceHint } from "@/lib/device-detect";
 import { getSupportedDevices } from "@/lib/devices.functions";
-import { getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
+import { compareDestinations, getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
 
 
 export const Route = createFileRoute("/")({
@@ -25,9 +25,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Weettah — Africa-first travel eSIM" },
-      { name: "description", content: "An African-made travel eSIM with clear prices, quick setup, and support that understands your journey." },
+      { name: "description", content: "Africa's travel eSIM. Install before you fly, land online, keep your WhatsApp number. Clear one-off prices, no roaming bills." },
       { property: "og:title", content: "Weettah — Africa-first travel eSIM" },
-      { property: "og:description", content: "Travel data made in Africa, for everywhere you go." },
+      { property: "og:description", content: "Africa-first. Connected everywhere." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -43,15 +43,15 @@ function Hero() {
       <div className="absolute inset-0 bg-secondary/65" />
       <div className="relative mx-auto flex min-h-[calc(84svh-4rem)] max-w-7xl items-end px-5 py-12 sm:items-center lg:px-8 lg:py-20">
         <div className="max-w-3xl">
-          <p className="mb-5 text-sm font-bold uppercase text-surface">African-made · Worldwide connection</p>
-          <h1 className="text-4xl font-extrabold leading-[0.98] sm:text-7xl lg:text-8xl">Made here.<br /><span className="text-surface">Ready <span className="block sm:inline">everywhere.</span></span></h1>
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-secondary-foreground/85 sm:text-lg">Fast, fair travel data built with African journeys in mind. Choose a plan, install in minutes, and arrive online.</p>
+          <p className="mb-5 text-sm font-bold uppercase text-surface">Africa-first. Connected everywhere.</p>
+          <h1 className="text-4xl font-extrabold leading-[0.98] sm:text-6xl lg:text-7xl">Africa's travel eSIM.<br /><span className="text-surface">Online the moment you land.</span></h1>
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-secondary-foreground/85 sm:text-lg">Install before you fly, land connected, and keep your WhatsApp number. Clear prices, no roaming bills.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button size="lg" className="h-12 px-6" asChild><a href="#destinations">Find your destination <ArrowRight /></a></Button>
             <Button size="lg" variant="outline" className="h-12 border-secondary-foreground/50 bg-secondary/20 text-secondary-foreground hover:bg-secondary-foreground hover:text-secondary" asChild><a href="#how-it-works">See how it works</a></Button>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-            {["Keep your number", "No surprise roaming", "Instant delivery"].map((item) => <span key={item} className="flex items-center gap-2"><Check className="text-surface" />{item}</span>)}
+            {["Keep your number", "No surprise roaming", "Refundable if unused"].map((item) => <span key={item} className="flex items-center gap-2"><Check className="text-surface" />{item}</span>)}
           </div>
         </div>
       </div>
@@ -105,7 +105,7 @@ function Plans() {
         grouped.set(plan.slug, { country: plan.country, slug: plan.slug, flag: plan.flag, region: plan.region, plans: [plan], popular: plan.popular });
       }
     }
-    return [...grouped.values()].sort((a, b) => Number(b.popular) - Number(a.popular) || a.country.localeCompare(b.country));
+    return [...grouped.values()].sort(compareDestinations);
   }, [planList]);
   const regions = useMemo(() => ["All", ...Array.from(new Set(destinations.map((item) => item.region))).sort()], [destinations]);
   const visible = useMemo(() => destinations.filter((item) => (region === "All" || item.region === region) && item.country.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 6), [destinations, region, query]);
@@ -139,7 +139,7 @@ function Plans() {
 
 
 const promises = [
-  ["01", "Africa-first, not Africa-afterthought", "Built around the routes, payment realities, and support needs of African travellers."],
+  ["01", "Built for African journeys", "Built around the routes, payment realities, and support needs of African travellers."],
   ["02", "Prices that say what they mean", "The price you see is the price you pay. No roaming shock waiting at home."],
   ["03", "Human help, across time zones", "Real support when you need it, whether you're in Accra, London, Dubai, or beyond."],
   ["04", "One eSIM, more journeys", "Top up as you move. Keep your usual SIM in place for calls, texts, and WhatsApp."],
@@ -147,7 +147,7 @@ const promises = [
 
 function Why() {
   return (
-    <section id="why" className="bg-surface"><div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 lg:grid-cols-[0.8fr_1.2fr] lg:px-8 lg:py-28"><SectionHead label="Made on the continent" title="Connection that gets where you're coming from." body="Weettah is proudly African-made and built to make the world feel closer — without the roaming runaround." /><div className="divide-y divide-border border-y border-border">{promises.map(([number, title, body]) => <div key={number} className="grid grid-cols-[3rem_1fr] gap-4 py-6"><span className="font-display font-bold text-primary">{number}</span><div><h3 className="text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></div></div>)}</div></div></section>
+    <section id="why" className="bg-surface"><div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 lg:grid-cols-[0.8fr_1.2fr] lg:px-8 lg:py-28"><SectionHead label="Why Weettah" title="Africa-first, not Africa-afterthought." body="Weettah is proudly African-made and built to make the world feel closer — without the roaming runaround." /><div className="divide-y divide-border border-y border-border">{promises.map(([number, title, body]) => <div key={number} className="grid grid-cols-[3rem_1fr] gap-4 py-6"><span className="font-display font-bold text-primary">{number}</span><div><h3 className="text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></div></div>)}</div></div></section>
   );
 }
 

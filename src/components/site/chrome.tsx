@@ -80,7 +80,7 @@ export function Footer() {
           <Button size="lg" asChild><Link to="/destinations">Choose a plan <ArrowRight /></Link></Button>
         </div>
         <div className="flex flex-col justify-between gap-6 pt-8 text-sm text-secondary-foreground/60 sm:flex-row">
-          <p>© {new Date().getFullYear()} Weettah. African-made. Globally connected.</p>
+          <p>© {new Date().getFullYear()} Weettah. Africa-first. Connected everywhere.</p>
           <div className="flex flex-wrap gap-6">
             <Link to="/destinations">Destinations</Link>
             <Link to="/my-esim">Find my eSIM</Link>

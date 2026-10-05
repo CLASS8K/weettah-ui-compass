@@ -9,8 +9,8 @@ const checkoutSchema = z.object({
   phone: z.string().trim().min(7).max(24).regex(/^\+?[0-9 ()-]+$/),
 });
 
-// Payment gateways are not connected yet. Orders are recorded as pending
-// reservations so nothing is lost, and the team follows up manually.
+// Records the order, then hands the customer to PayChangu checkout. If PayChangu
+// isn't configured (no secret key), the order is saved as a manual reservation.
 export const requestOrder = createServerFn({ method: "POST" })
   .inputValidator((input) => checkoutSchema.parse(input))
   .handler(async ({ data }) => {
@@ -39,5 +39,45 @@ export const requestOrder = createServerFn({ method: "POST" })
     });
     if (error) throw new Error("Unable to save your request");
 
-    return { ok: true as const, reference };
+    const { paychanguConfigured, computeCharge, encodeCharge, initiateCheckout } = await import("./paychangu.server");
+    if (!paychanguConfigured()) return { ok: true as const, reference, checkoutUrl: null };
+
+    const charge = computeCharge(plan.amount_minor, plan.currency);
+    const { error: chargeError } = await supabaseAdmin.from("payment_orders").update({
+      payment_method: "paychangu",
+      provider_status_description: encodeCharge(charge),
+    }).eq("merchant_reference", reference);
+    if (chargeError) throw new Error("Unable to start payment");
+
+    try {
+      const checkoutUrl = await initiateCheckout({
+        txRef: reference,
+        charge,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        title: "Weettah eSIM",
+        description: `${plan.data_allowance} · ${plan.validity_days} days`,
+      });
+      return { ok: true as const, reference, checkoutUrl };
+    } catch (initError) {
+      console.error("PayChangu checkout could not start", initError);
+      await supabaseAdmin.from("payment_orders").update({
+        status: "cancelled",
+        fulfillment_error: initError instanceof Error ? initError.message.slice(0, 300) : "Checkout failed to start",
+      }).eq("merchant_reference", reference);
+      throw new Error("Unable to start payment");
+    }
+  });
+
+const confirmSchema = z.object({ reference: z.string().trim().regex(/^WEETTAH-[0-9a-f-]{36}$/i) });
+
+// Called by /payment/complete after PayChangu redirects back.
+export const confirmPayment = createServerFn({ method: "POST" })
+  .inputValidator((input) => confirmSchema.parse(input))
+  .handler(async ({ data }) => {
+    const { paychanguConfigured } = await import("./paychangu.server");
+    if (!paychanguConfigured()) return { state: "not_found" as const };
+    const { confirmPaychanguOrder } = await import("./payment-confirmation.server");
+    return confirmPaychanguOrder(data.reference);
   });

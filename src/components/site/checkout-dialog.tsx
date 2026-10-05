@@ -30,10 +30,14 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
         email: String(values.get("email") || ""),
         phone: String(values.get("phone") || ""),
       } });
+      if (result.checkoutUrl) {
+        window.location.assign(result.checkoutUrl);
+        return;
+      }
       setReference(result.reference);
+      setSubmitting(false);
     } catch {
-      setNotice("We couldn't save your request. Please check your details and try again.");
-    } finally {
+      setNotice("We couldn't start your payment. Please check your details and try again.");
       setSubmitting(false);
     }
   };
@@ -44,7 +48,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
         {plan && <>
           <div className="bg-secondary px-6 py-7 text-secondary-foreground sm:px-8">
             <DialogHeader>
-              <p className="text-xs font-bold uppercase text-surface">Reserve your eSIM</p>
+              <p className="text-xs font-bold uppercase text-surface">Get your eSIM</p>
               <DialogTitle className="mt-2 text-2xl font-extrabold sm:text-3xl">{plan.flag} {plan.country}</DialogTitle>
               <DialogDescription className="text-secondary-foreground/70">{plan.data} of data · {plan.days} days</DialogDescription>
             </DialogHeader>
@@ -53,7 +57,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
                 <span className="text-sm text-secondary-foreground/70">Plan price</span>
                 <span className="font-display text-3xl font-extrabold">{plan.price}</span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">One-off price in US dollars — no taxes or activation fees added, and nothing renews later. Nothing is charged now.</p>
+              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">One-off price — no activation fees, and nothing renews. Mobile money is charged in kwacha at our current rate; you'll see the exact amount before you confirm.</p>
             </div>
           </div>
 
@@ -122,7 +126,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
           <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">
             <div>
               <h3 className="font-bold">Where should we reach you?</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Online payment is coming later. For now we'll email you to complete your order and send your QR code.</p>
+              <p className="mt-1 text-sm text-muted-foreground">We'll use these to send your receipt and your eSIM QR code.</p>
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2"><Label htmlFor="firstName">First name</Label><Input id="firstName" name="firstName" autoComplete="given-name" required minLength={2} /></div>
@@ -132,7 +136,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
             </div>
             <div className="border-y border-border py-5">
               <p className="text-xs font-bold uppercase text-muted-foreground">Payment</p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Online payment is not switched on yet. Send your request now and we'll come back to you with payment details — you won't be charged anything here.</p>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Next you'll go to PayChangu's secure page to pay with Airtel Money, TNM Mpamba or card. Your eSIM is issued as soon as the payment clears.</p>
             </div>
             <div className="rounded-md border border-border p-4">
               <div className="flex items-start gap-3">
@@ -146,7 +150,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
             </div>
             {notice && <p role="alert" className="rounded-md bg-surface px-4 py-3 text-sm font-semibold text-surface-foreground">{notice}</p>}
             <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting || !confirmed}>
-              {submitting ? <><Loader2 className="animate-spin" />Sending your request…</> : <><LockKeyhole />Reserve this eSIM · {plan.price}</>}
+              {submitting ? <><Loader2 className="animate-spin" />Opening secure payment…</> : <><LockKeyhole />Continue to payment · {plan.price}</>}
             </Button>
             <p className="text-center text-xs text-muted-foreground">By continuing, you agree to Weettah's terms and refund policy.</p>
           </form>
