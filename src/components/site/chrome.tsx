@@ -86,6 +86,9 @@ export function Footer() {
             <Link to="/my-esim">Find my eSIM</Link>
             <a href="/#compatibility">Phone check</a>
             <a href="/#faq">Support</a>
+            <Link to="/terms">Terms</Link>
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/refunds">Refunds</Link>
           </div>
         </div>
       </div>

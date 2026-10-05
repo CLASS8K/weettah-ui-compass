@@ -154,7 +154,7 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
                 ? <><Loader2 className="animate-spin" />{paymentsOnline ? "Opening secure payment…" : "Sending your request…"}</>
                 : <><LockKeyhole />{paymentsOnline ? "Continue to payment" : "Reserve this eSIM"} · {plan.price}</>}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">By continuing, you agree to Weettah's terms and refund policy.</p>
+            <p className="text-center text-xs text-muted-foreground">By continuing, you agree to our <a href="/terms" target="_blank" rel="noopener" className="underline">terms</a> and <a href="/refunds" target="_blank" rel="noopener" className="underline">refund policy</a>, and you've read our <a href="/privacy" target="_blank" rel="noopener" className="underline">privacy policy</a>.</p>
           </form>
           )}
         </>}
