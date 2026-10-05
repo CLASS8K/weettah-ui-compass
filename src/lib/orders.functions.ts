@@ -38,10 +38,10 @@ export const lookupOrder = createServerFn({ method: "POST" })
     // characters in user input carry no special meaning.
     if (!row || row.customer_email.trim().toLowerCase() !== data.email.toLowerCase()) return { found: false };
 
-    const paid = row.status === "COMPLETED";
+    const paid = row.status === "completed";
     const esimStatus = !paid
       ? ("not_paid" as const)
-      : row.fulfillment_status === "fulfilled"
+      : row.fulfillment_status === "ready"
         ? ("ready" as const)
         : row.fulfillment_status === "failed"
           ? ("attention" as const)
@@ -55,7 +55,7 @@ export const lookupOrder = createServerFn({ method: "POST" })
       days: row.validity_days,
       price: new Intl.NumberFormat("en", { style: "currency", currency: row.currency }).format(row.amount_minor / 100),
       purchasedAt: row.created_at,
-      paymentStatus: paid ? "Paid" : row.status === "FAILED" ? "Payment failed" : "Awaiting payment",
+      paymentStatus: paid ? "Paid" : row.status === "failed" ? "Payment failed" : "Awaiting payment",
       esimStatus,
       activationUrl: esimStatus === "ready" && row.activation_token ? `/activate?token=${row.activation_token}` : null,
     };

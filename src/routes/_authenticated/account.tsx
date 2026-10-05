@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/account")({
 const statusCopy: Record<AccountOrder["esimStatus"], { title: string; body: string }> = {
   ready: { title: "eSIM ready", body: "Open your install page to scan the QR code or copy the manual code." },
   preparing: { title: "Preparing your eSIM", body: "This usually takes a minute or two. Refresh shortly." },
-  not_paid: { title: "Payment pending", body: "Online payment is not available yet. Our team will contact you with the next steps for this order." },
+  not_paid: { title: "Payment not received", body: "We haven't received payment for this order. If money left your account, don't pay again — email support@weettah.com with your reference." },
   attention: { title: "Needs our attention", body: "Your payment went through but the eSIM didn't issue. Contact support with this reference and we'll sort it out." },
 };
 
@@ -78,7 +78,7 @@ function AccountPage() {
           <div className="mt-10 rounded-lg border border-border p-8">
             <h2 className="text-xl font-extrabold">No orders yet</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Once you reserve a plan with this email address, it will show up here with its eSIM status.
+              Once you buy a plan with this email address, it will show up here with its eSIM status.
             </p>
             <Button className="mt-6" asChild><Link to="/destinations">Browse destinations <ArrowRight /></Link></Button>
           </div>

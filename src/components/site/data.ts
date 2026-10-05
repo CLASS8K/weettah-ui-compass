@@ -9,8 +9,8 @@ export const steps = [
     body: "Choose the country or region you're travelling to and the amount of data you need. Prices are final — no roaming surcharges.",
   },
   {
-    title: "Reserve your eSIM",
-    body: "Send your order and we'll email you payment details. As soon as it's paid, your eSIM QR code is ready.",
+    title: "Pay your way",
+    body: "Pay with Airtel Money, TNM Mpamba or card through PayChangu. Your eSIM QR code is ready as soon as the payment clears.",
   },
   {
     title: "Scan and land connected",
@@ -47,7 +47,7 @@ export const faqs = [
 
 export const trustPoints = [
   { title: "30-day refund if unused", body: "Haven't activated your eSIM? Ask for a full refund within 30 days, no questions." },
-  { title: "No charge at reservation", body: "Choose a plan and send your request. We'll contact you with payment details while online payments are being prepared." },
+  { title: "Mobile money or card", body: "Pay securely through PayChangu with Airtel Money, TNM Mpamba, Visa or Mastercard." },
   { title: "QR code once you've paid", body: "Your install page is ready as soon as payment is confirmed, and stays available from Find my eSIM." },
   { title: "Real people on support", body: "Email support@weettah.com and a person replies — no bots, no ticket maze." },
 ];
