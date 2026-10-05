@@ -164,7 +164,7 @@ export async function getActivationByToken(token: string) {
   }
 
   const { data: refreshed } = await supabaseAdmin.from("payment_orders")
-    .select("country, data_allowance, validity_days, status, fulfillment_status, activation_code, apn, iccid")
+    .select("merchant_reference, country, data_allowance, validity_days, status, fulfillment_status, activation_code, apn, iccid")
     .eq("activation_token", token)
     .maybeSingle();
   if (!refreshed) throw new Error("ACTIVATION_NOT_FOUND");
