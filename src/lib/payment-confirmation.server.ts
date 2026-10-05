@@ -1,4 +1,4 @@
-import { decodeCharge, verifyTransaction } from "./paychangu.server";
+import { decodeCharge, verifyTransaction, type PaymentDetails } from "./paychangu.server";
 
 export type ConfirmationResult =
   | { state: "paid"; activationToken: string }
@@ -47,10 +47,17 @@ export async function confirmPaychanguOrder(reference: string): Promise<Confirma
   }
 
   // Conditional update so two concurrent confirmations can't both win.
+  const details: PaymentDetails = {
+    charge: expected,
+    method: transaction.method,
+    account: transaction.account,
+    fee: transaction.fee,
+  };
   await supabaseAdmin.from("payment_orders").update({
     status: "completed",
+    payment_method: transaction.method,
     confirmation_code: transaction.reference,
-    provider_status_description: `${order.provider_status_description}${transaction.channel ? ` via ${transaction.channel}` : ""}`.slice(0, 200),
+    provider_status_description: JSON.stringify(details),
   }).eq("merchant_reference", reference).eq("status", "pending");
 
   await provisionQuietly({ ...order, status: "completed" });
