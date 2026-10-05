@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { requestOrder } from "@/lib/payments.functions";
 import type { PublicPlan } from "@/lib/plans.functions";
 
-export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { plan: PublicPlan | null; open: boolean; onOpenChange: (open: boolean) => void; paymentsOnline: boolean }) {
   const reserve = useServerFn(requestOrder);
   const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -37,7 +37,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
       setReference(result.reference);
       setSubmitting(false);
     } catch {
-      setNotice("We couldn't start your payment. Please check your details and try again.");
+      setNotice(paymentsOnline ? "We couldn't start your payment. Please check your details and try again." : "We couldn't send your request. Please check your details and try again.");
       setSubmitting(false);
     }
   };
@@ -48,7 +48,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
         {plan && <>
           <div className="bg-secondary px-6 py-7 text-secondary-foreground sm:px-8">
             <DialogHeader>
-              <p className="text-xs font-bold uppercase text-surface">Get your eSIM</p>
+              <p className="text-xs font-bold uppercase text-surface">{paymentsOnline ? "Get your eSIM" : "Reserve your eSIM"}</p>
               <DialogTitle className="mt-2 text-2xl font-extrabold sm:text-3xl">{plan.flag} {plan.country}</DialogTitle>
               <DialogDescription className="text-secondary-foreground/70">{plan.data} of data · {plan.days} days</DialogDescription>
             </DialogHeader>
@@ -57,7 +57,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
                 <span className="text-sm text-secondary-foreground/70">Plan price</span>
                 <span className="font-display text-3xl font-extrabold">{plan.price}</span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">One-off price — no activation fees, and nothing renews. Mobile money is charged in kwacha at our current rate; you'll see the exact amount before you confirm.</p>
+              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">{paymentsOnline ? "One-off price with no activation fees, and nothing renews. Mobile money is charged in kwacha at today's rate, and you'll see the exact amount before you confirm." : "One-off price in US dollars with no activation fees, and nothing renews. You won't be charged anything now."}</p>
             </div>
           </div>
 
@@ -126,7 +126,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
           <form onSubmit={submit} className="space-y-6 px-6 py-7 sm:px-8">
             <div>
               <h3 className="font-bold">Where should we reach you?</h3>
-              <p className="mt-1 text-sm text-muted-foreground">We'll use these to send your receipt and your eSIM QR code.</p>
+              <p className="mt-1 text-sm text-muted-foreground">{paymentsOnline ? "We'll use these to send your receipt and your eSIM QR code." : "We'll email you to arrange payment and send your eSIM QR code."}</p>
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2"><Label htmlFor="firstName">First name</Label><Input id="firstName" name="firstName" autoComplete="given-name" required minLength={2} /></div>
@@ -136,7 +136,7 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
             </div>
             <div className="border-y border-border py-5">
               <p className="text-xs font-bold uppercase text-muted-foreground">Payment</p>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Next you'll go to PayChangu's secure page to pay with Airtel Money, TNM Mpamba or card. Your eSIM is issued as soon as the payment clears.</p>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{paymentsOnline ? "Next, you'll go to PayChangu's secure page to pay with Airtel Money, TNM Mpamba or card. Your eSIM is issued as soon as the payment clears." : "Online payment isn't switched on yet. Send your request and we'll email you the payment details. You won't be charged anything here."}</p>
             </div>
             <div className="rounded-md border border-border p-4">
               <div className="flex items-start gap-3">
@@ -144,13 +144,15 @@ export function CheckoutDialog({ plan, open, onOpenChange }: { plan: PublicPlan 
                 <Label htmlFor="compat" className="text-sm font-semibold leading-relaxed">My phone supports eSIM and isn't locked to one network</Label>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                Not sure? Dial <span className="font-bold">*#06#</span> — if an EID number appears, you're good. You can also{" "}
+                Not sure? Dial <span className="font-bold">*#06#</span>. If an EID number appears, your phone supports eSIM. You can also{" "}
                 <a href="/#compatibility" className="font-bold underline">check the phone list</a>.
               </p>
             </div>
             {notice && <p role="alert" className="rounded-md bg-surface px-4 py-3 text-sm font-semibold text-surface-foreground">{notice}</p>}
             <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting || !confirmed}>
-              {submitting ? <><Loader2 className="animate-spin" />Opening secure payment…</> : <><LockKeyhole />Continue to payment · {plan.price}</>}
+              {submitting
+                ? <><Loader2 className="animate-spin" />{paymentsOnline ? "Opening secure payment…" : "Sending your request…"}</>
+                : <><LockKeyhole />{paymentsOnline ? "Continue to payment" : "Reserve this eSIM"} · {plan.price}</>}
             </Button>
             <p className="text-center text-xs text-muted-foreground">By continuing, you agree to Weettah's terms and refund policy.</p>
           </form>

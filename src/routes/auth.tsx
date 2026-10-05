@@ -17,9 +17,9 @@ export const Route = createFileRoute("/auth")({
       ? { redirect: search['redirect'] }
       : {},
   head: () => ({ meta: [
-    { title: "Operations sign in — Weettah" },
+    { title: "Operations sign in | Weettah" },
     { name: "description", content: "Secure sign in for Weettah operations." },
-    { property: "og:title", content: "Operations sign in — Weettah" },
+    { property: "og:title", content: "Operations sign in | Weettah" },
     { property: "og:description", content: "Secure sign in for Weettah operations." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
@@ -76,7 +76,7 @@ function AuthPage() {
           <p className="mt-4 leading-relaxed text-muted-foreground">
             {adminIntent
               ? "Access is limited to approved, verified administrator email addresses."
-              : "Use the email address you ordered with. We'll email you a six-digit code — no password to remember."}
+              : "Use the email address you ordered with. We'll email you a six-digit code, so there's no password to remember."}
           </p>
           <form onSubmit={submit} className="mt-8 space-y-5">
             <div className="space-y-2"><Label htmlFor="admin-email">Email address</Label><Input id="admin-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={sent} required /></div>

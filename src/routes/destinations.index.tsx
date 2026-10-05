@@ -12,9 +12,9 @@ export const Route = createFileRoute("/destinations/")({
   loader: async () => ({ destinations: await getDestinations() }),
   head: () => ({
     meta: [
-      { title: "Travel eSIM destinations — Weettah" },
+      { title: "Travel eSIM destinations | Weettah" },
       { name: "description", content: "Browse Weettah travel eSIM data plans by country, with clear one-off prices and local network coverage." },
-      { property: "og:title", content: "Travel eSIM destinations — Weettah" },
+      { property: "og:title", content: "Travel eSIM destinations | Weettah" },
       { property: "og:description", content: "Find a data plan for your next trip, from Africa to everywhere." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -42,7 +42,7 @@ function DestinationsPage() {
           <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <p className="text-xs font-bold uppercase text-surface">{list.length} destinations live</p>
             <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-tight sm:text-6xl">Data plans for wherever you're going next.</h1>
-            <p className="mt-5 max-w-2xl leading-relaxed text-secondary-foreground/80">Pick a country to see every Weettah plan for it — how much data, how many days, and what you pay in total. No roaming surcharges, no contracts.</p>
+            <p className="mt-5 max-w-2xl leading-relaxed text-secondary-foreground/80">Pick a country to see every plan we offer there: how much data, how many days and the total price. No roaming surcharges, no contracts.</p>
           </div>
         </section>
 

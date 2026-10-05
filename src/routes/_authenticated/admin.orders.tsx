@@ -12,8 +12,8 @@ import { exportAdminOrders, listAdminOrders, retryAdminFulfillment, markOrderPai
 export const Route = createFileRoute("/_authenticated/admin/orders")({
   staticData: { sitemap: false },
   head: () => ({ meta: [
-    { title: "Orders — Weettah Operations" }, { name: "description", content: "Manage Weettah payments and eSIM delivery." },
-    { property: "og:title", content: "Orders — Weettah Operations" }, { property: "og:description", content: "Manage Weettah payments and eSIM delivery." },
+    { title: "Orders | Weettah Operations" }, { name: "description", content: "Manage Weettah payments and eSIM delivery." },
+    { property: "og:title", content: "Orders | Weettah Operations" }, { property: "og:description", content: "Manage Weettah payments and eSIM delivery." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }), component: OrdersPage,
 });

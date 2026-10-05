@@ -14,9 +14,9 @@ import { deleteAdminDevice, listAdminDevices, saveAdminDevice } from "@/lib/admi
 export const Route = createFileRoute("/_authenticated/admin/devices")({
   staticData: { sitemap: false },
   head: () => ({ meta: [
-    { title: "Phone check — Weettah Operations" },
+    { title: "Phone check | Weettah Operations" },
     { name: "description", content: "Manage the phones listed in the Weettah eSIM compatibility checker." },
-    { property: "og:title", content: "Phone check — Weettah Operations" },
+    { property: "og:title", content: "Phone check | Weettah Operations" },
     { property: "og:description", content: "Manage the phones listed in the Weettah eSIM compatibility checker." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },

@@ -81,3 +81,9 @@ export const confirmPayment = createServerFn({ method: "POST" })
     const { confirmPaychanguOrder } = await import("./payment-confirmation.server");
     return confirmPaychanguOrder(data.reference);
   });
+
+// Lets pages describe the checkout that is actually live.
+export const getPaymentMode = createServerFn({ method: "GET" }).handler(async () => {
+  const { paychanguConfigured } = await import("./paychangu.server");
+  return { online: paychanguConfigured() };
+});

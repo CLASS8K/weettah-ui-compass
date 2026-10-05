@@ -24,10 +24,14 @@ export const ESIM_ANDROID_MODELS: Record<string, string> = {
   "Nokia G60": "Nokia G60", "Nokia X30": "Nokia X30",
 };
 
+// Longest codes first, so "Pixel 7a" matches before "Pixel 7".
+const CODES_BY_LENGTH = Object.keys(ESIM_ANDROID_MODELS).sort((a, b) => b.length - a.length);
+
 export function matchEsimAndroid(modelString: string): string | null {
   if (!modelString) return null;
-  for (const [code, name] of Object.entries(ESIM_ANDROID_MODELS)) {
-    if (modelString.startsWith(code) || modelString.includes(code)) return name;
+  const model = modelString.toLowerCase();
+  for (const code of CODES_BY_LENGTH) {
+    if (model.includes(code.toLowerCase())) return ESIM_ANDROID_MODELS[code] ?? null;
   }
   return null;
 }

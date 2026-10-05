@@ -13,8 +13,8 @@ import { getAdminIntegrations, updateAdminIntegration } from "@/lib/admin.functi
 export const Route = createFileRoute("/_authenticated/admin/integrations")({
   staticData: { sitemap: false },
   head: () => ({ meta: [
-    { title: "Integrations — Weettah Operations" }, { name: "description", content: "Manage Weettah supplier connections." },
-    { property: "og:title", content: "Integrations — Weettah Operations" }, { property: "og:description", content: "Manage Weettah supplier connections." },
+    { title: "Integrations | Weettah Operations" }, { name: "description", content: "Manage Weettah supplier connections." },
+    { property: "og:title", content: "Integrations | Weettah Operations" }, { property: "og:description", content: "Manage Weettah supplier connections." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }), component: IntegrationsPage,
 });
@@ -29,7 +29,7 @@ function IntegrationsPage() {
     <AdminShell title="Integrations" description="Manage private supplier credentials. Saved secrets are encrypted and can never be revealed again.">
       <div className="mb-6 flex items-start gap-3 rounded-md bg-surface p-4 text-sm text-surface-foreground">
         <LockKeyhole className="mt-0.5 shrink-0" />
-        <p>Leave credential fields blank to keep saved values. Entering a new value replaces the encrypted credential. Payment providers are not connected yet — orders are captured as requests until a gateway is added.</p>
+        <p>Leave credential fields blank to keep saved values. Entering a new value replaces the encrypted credential. PayChangu is configured with environment variables in Vercel. Without them, orders are saved as requests.</p>
       </div>
       {query.isLoading
         ? <p className="flex items-center gap-2 py-16 text-muted-foreground"><Loader2 className="animate-spin" />Loading integrations…</p>

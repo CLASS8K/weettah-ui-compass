@@ -10,8 +10,8 @@ import { getAdminReport } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   staticData: { sitemap: false },
   head: () => ({ meta: [
-    { title: "Reports — Weettah Operations" }, { name: "description", content: "Weettah sales, payment and activation performance." },
-    { property: "og:title", content: "Reports — Weettah Operations" }, { property: "og:description", content: "Weettah sales, payment and activation performance." },
+    { title: "Reports | Weettah Operations" }, { name: "description", content: "Weettah sales, payment and activation performance." },
+    { property: "og:title", content: "Reports | Weettah Operations" }, { property: "og:description", content: "Weettah sales, payment and activation performance." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }), component: ReportsPage,
 });

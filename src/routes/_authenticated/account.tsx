@@ -11,7 +11,7 @@ import { countryDisplayName } from "@/lib/country-names";
 export const Route = createFileRoute("/_authenticated/account")({
   staticData: { sitemap: false },
   head: () => ({ meta: [
-    { title: "My account — Weettah" },
+    { title: "My account | Weettah" },
     { name: "description", content: "View your Weettah orders and manage your eSIMs in one place." },
     { name: "robots", content: "noindex" },
   ] }),
@@ -21,8 +21,8 @@ export const Route = createFileRoute("/_authenticated/account")({
 const statusCopy: Record<AccountOrder["esimStatus"], { title: string; body: string }> = {
   ready: { title: "eSIM ready", body: "Open your install page to scan the QR code or copy the manual code." },
   preparing: { title: "Preparing your eSIM", body: "This usually takes a minute or two. Refresh shortly." },
-  not_paid: { title: "Payment not received", body: "We haven't received payment for this order. If money left your account, don't pay again — email support@weettah.com with your reference." },
-  attention: { title: "Needs our attention", body: "Your payment went through but the eSIM didn't issue. Contact support with this reference and we'll sort it out." },
+  not_paid: { title: "Payment not received", body: "We haven't received payment for this order. If money left your account, don't pay again. Email support@weettah.com with your reference." },
+  attention: { title: "Needs our attention", body: "Your payment went through, but we couldn't issue your eSIM. Contact support with this reference and we'll sort it out." },
 };
 
 function AccountPage() {

@@ -13,8 +13,8 @@ import { listAdminPlans, updateAdminPlan } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/admin/packages")({
   staticData: { sitemap: false },
   head: () => ({ meta: [
-    { title: "Packages — Weettah Operations" }, { name: "description", content: "Manage Weettah eSIM package prices and supplier codes." },
-    { property: "og:title", content: "Packages — Weettah Operations" }, { property: "og:description", content: "Manage Weettah eSIM package prices and supplier codes." },
+    { title: "Packages | Weettah Operations" }, { name: "description", content: "Manage Weettah eSIM package prices and supplier codes." },
+    { property: "og:title", content: "Packages | Weettah Operations" }, { property: "og:description", content: "Manage Weettah eSIM package prices and supplier codes." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }), component: PackagesPage,
 });
