@@ -18,9 +18,9 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/guides")({
   staticData: { sitemap: false },
   head: () => ({ meta: [
-    { title: "Destination guides — Weettah Operations" },
+    { title: "Destination guides | Weettah Operations" },
     { name: "description", content: "Write the local travel content shown on each Weettah destination page." },
-    { property: "og:title", content: "Destination guides — Weettah Operations" },
+    { property: "og:title", content: "Destination guides | Weettah Operations" },
     { property: "og:description", content: "Write the local travel content shown on each Weettah destination page." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
@@ -58,7 +58,7 @@ function GuidesPage() {
   const [adding, setAdding] = useState(false);
 
   return (
-    <AdminShell title="Destination guides" description="Local content for each country page — what search visitors read before they buy.">
+    <AdminShell title="Destination guides" description="Local content for each country page: what search visitors read before they buy.">
       {guides.isLoading ? (
         <p className="flex items-center gap-2 py-16 text-muted-foreground"><Loader2 className="animate-spin" />Loading guides…</p>
       ) : (
@@ -191,11 +191,11 @@ function GuideEditor({ guide, onSave, onDelete, saving }: {
           <Input value={form.bestTime} onChange={set("bestTime")} />
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label>Travel tips — one per line</Label>
+          <Label>Travel tips (one per line)</Label>
           <Textarea rows={4} value={tips} onChange={(event) => setTips(event.target.value)} />
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label>Local questions — one per line, as "Question | Answer"</Label>
+          <Label>Local questions (one per line, as "Question | Answer")</Label>
           <Textarea rows={4} value={faqs} onChange={(event) => setFaqs(event.target.value)} />
         </div>
       </div>

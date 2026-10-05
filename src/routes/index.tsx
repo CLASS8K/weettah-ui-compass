@@ -1,14 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, Search, ShieldCheck, Smartphone } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, ChevronDown, Loader2, MonitorSmartphone, Search, ShieldCheck, Smartphone } from "lucide-react";
 import heroImage from "@/assets/weettah-africa-hero.jpg";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { faqs, serviceStats, steps, trustPoints, unsupportedNote } from "@/components/site/data";
+import { faqs, getSteps, getTrustPoints, serviceStats } from "@/components/site/data";
+import { getPaymentMode } from "@/lib/payments.functions";
 import { Footer, Header, SectionHead } from "@/components/site/chrome";
 import { cn } from "@/lib/utils";
-import { detectDevice, type DeviceHint } from "@/lib/device-detect";
+import { checkThisDevice, type DeviceCheck } from "@/lib/device-detect";
 import { getSupportedDevices } from "@/lib/devices.functions";
 import { compareDestinations, getPublicPlans, type PublicPlan as Plan } from "@/lib/plans.functions";
 
@@ -16,17 +17,18 @@ import { compareDestinations, getPublicPlans, type PublicPlan as Plan } from "@/
 export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
   loader: async () => {
-    const [plans, devices] = await Promise.all([
+    const [plans, devices, mode] = await Promise.all([
       getPublicPlans().catch(() => []),
       getSupportedDevices().catch(() => []),
+      getPaymentMode().catch(() => ({ online: false })),
     ]);
-    return { plans: plans ?? [], devices: devices ?? [] };
+    return { plans: plans ?? [], devices: devices ?? [], paymentsOnline: mode.online };
   },
   head: () => ({
     meta: [
-      { title: "Weettah — Africa-first travel eSIM" },
-      { name: "description", content: "Africa's travel eSIM. Install before you fly, land online, keep your WhatsApp number. Clear one-off prices, no roaming bills." },
-      { property: "og:title", content: "Weettah — Africa-first travel eSIM" },
+      { title: "Weettah | Africa-first travel eSIM" },
+      { name: "description", content: "Africa's travel eSIM. Install it before you fly, land online and keep your WhatsApp number. Clear one-off prices and no roaming bills." },
+      { property: "og:title", content: "Weettah | Africa-first travel eSIM" },
       { property: "og:description", content: "Africa-first. Connected everywhere." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -79,11 +81,12 @@ function Stats() {
 
 
 function Steps() {
+  const { paymentsOnline } = Route.useLoaderData();
   return (
     <section id="how-it-works" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
-      <SectionHead label="Simple by design" title="From choosing to connected in three steps." />
+      <SectionHead label="Simple by design" title="From choosing a plan to getting online in three steps." />
       <ol className="mt-12 grid border-y border-border md:grid-cols-3">
-        {steps.map((step, index) => <li key={step.title} className="border-b border-border py-8 md:border-b-0 md:border-r md:px-8 md:first:pl-0 md:last:border-r-0"><p className="font-display text-5xl font-extrabold text-primary">0{index + 1}</p><h3 className="mt-8 text-xl font-bold">{step.title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{step.body}</p></li>)}
+        {getSteps(paymentsOnline).map((step, index) => <li key={step.title} className="border-b border-border py-8 md:border-b-0 md:border-r md:px-8 md:first:pl-0 md:last:border-r-0"><p className="font-display text-5xl font-extrabold text-primary">0{index + 1}</p><h3 className="mt-8 text-xl font-bold">{step.title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{step.body}</p></li>)}
       </ol>
     </section>
   );
@@ -147,15 +150,16 @@ const promises = [
 
 function Why() {
   return (
-    <section id="why" className="bg-surface"><div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 lg:grid-cols-[0.8fr_1.2fr] lg:px-8 lg:py-28"><SectionHead label="Why Weettah" title="Africa-first, not Africa-afterthought." body="Weettah is proudly African-made and built to make the world feel closer — without the roaming runaround." /><div className="divide-y divide-border border-y border-border">{promises.map(([number, title, body]) => <div key={number} className="grid grid-cols-[3rem_1fr] gap-4 py-6"><span className="font-display font-bold text-primary">{number}</span><div><h3 className="text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></div></div>)}</div></div></section>
+    <section id="why" className="bg-surface"><div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 lg:grid-cols-[0.8fr_1.2fr] lg:px-8 lg:py-28"><SectionHead label="Why Weettah" title="Africa-first, not Africa-afterthought." body="Weettah is built in Africa to make the world feel closer, without the roaming bills." /><div className="divide-y divide-border border-y border-border">{promises.map(([number, title, body]) => <div key={number} className="grid grid-cols-[3rem_1fr] gap-4 py-6"><span className="font-display font-bold text-primary">{number}</span><div><h3 className="text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></div></div>)}</div></div></section>
   );
 }
 
 function Trust() {
+  const { paymentsOnline } = Route.useLoaderData();
   return (
     <section aria-label="Buying with confidence" className="border-y border-border bg-background">
       <div className="mx-auto grid max-w-7xl gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
-        {trustPoints.map((point) => (
+        {getTrustPoints(paymentsOnline).map((point) => (
           <div key={point.title} className="bg-background px-5 py-8 lg:px-8">
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 shrink-0 text-primary" />
@@ -174,60 +178,69 @@ function Trust() {
 function Compatibility() {
   const { devices } = Route.useLoaderData();
   const deviceList = devices ?? [];
-  const [query, setQuery] = useState("");
-  const [hint, setHint] = useState<DeviceHint | null>(null);
+  const [check, setCheck] = useState<DeviceCheck | null>(null);
   useEffect(() => {
-    setHint(detectDevice(navigator.userAgent));
+    let active = true;
+    void checkThisDevice(navigator).then((result) => { if (active) setCheck(result); });
+    return () => { active = false; };
   }, []);
-  const term = query.trim().toLowerCase();
-  const matches = useMemo(
-    () => (term.length < 2 ? deviceList : deviceList.filter((item) => `${item.brand} ${item.models}`.toLowerCase().includes(term))),
-    [term, deviceList],
-  );
+
   return (
     <section id="compatibility" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
-      <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-        <div>
-          <SectionHead label="Before you pay" title="Will it work on your phone?" body="We take a first guess from the phone you're browsing on, then you can search to be sure. Buying an eSIM your phone can't use is the one mistake we'd rather you never make." />
-          <p className="mt-3 text-sm text-muted-foreground">New to eSIM? It's a digital SIM built into your phone — no card to swap.</p>
-        </div>
-        <div className="relative w-full lg:max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="e.g. iPhone 13, Galaxy S22" aria-label="Search your phone model" className="h-12 pl-10" />
+      <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <SectionHead label="Before you pay" title="Will it work on your phone?" body="We check the phone you're browsing on automatically. Buying an eSIM your phone can't use is the one mistake we'd rather you never make." />
+        <div className={cn("rounded-lg border p-6 sm:p-8", check?.status === "supported" ? "border-accent/40 bg-accent/5" : "border-border bg-card")} aria-live="polite">
+          {!check && (
+            <div className="flex items-center gap-3 text-muted-foreground"><Loader2 className="animate-spin" />Checking your phone…</div>
+          )}
+          {check?.status === "supported" && (
+            <div className="flex gap-4">
+              <CheckCircle2 className="mt-1 h-7 w-7 shrink-0 text-accent" />
+              <div>
+                <p className="text-xs font-bold uppercase text-muted-foreground">Checked automatically</p>
+                <h3 className="mt-2 text-2xl font-extrabold">Your {check.device} supports eSIM</h3>
+                <p className="mt-3 leading-relaxed text-muted-foreground">{check.note}</p>
+                <Button className="mt-6" asChild><a href="#destinations">Choose a plan <ArrowRight /></a></Button>
+              </div>
+            </div>
+          )}
+          {check?.status === "check" && (
+            <div className="flex gap-4">
+              <Smartphone className="mt-1 h-7 w-7 shrink-0 text-primary" />
+              <div>
+                <p className="text-xs font-bold uppercase text-muted-foreground">You're on: {check.device}</p>
+                <h3 className="mt-2 text-2xl font-extrabold">One quick check to be sure</h3>
+                <p className="mt-3 leading-relaxed text-muted-foreground">{check.note}</p>
+              </div>
+            </div>
+          )}
+          {check?.status === "desktop" && (
+            <div className="flex gap-4">
+              <MonitorSmartphone className="mt-1 h-7 w-7 shrink-0 text-primary" />
+              <div>
+                <h3 className="text-2xl font-extrabold">Open this page on your phone</h3>
+                <p className="mt-3 leading-relaxed text-muted-foreground">You're on a computer, so there's no phone to check. Visit weettah.com on the phone you're travelling with and we'll check it automatically. Or dial *#06# on it: if an EID number appears, it supports eSIM.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-      {hint && (
-        <div className={cn("mt-10 flex flex-col gap-3 rounded-lg border p-6 sm:flex-row sm:items-start", hint.verdict === "likely" ? "border-accent/40 bg-accent/5" : "border-border")}>
-          {hint.verdict === "likely" ? <Check className="mt-0.5 shrink-0 text-accent" /> : <Smartphone className="mt-0.5 shrink-0 text-muted-foreground" />}
-          <div>
-            <h3 className="font-bold">{hint.verdict === "likely" ? `Good news — your ${hint.name} should work` : `You're browsing on: ${hint.name}`}</h3>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{hint.note}</p>
-            {hint.search && hint.search !== query && (
-              <Button variant="outline" size="sm" className="mt-4" onClick={() => setQuery(hint.search)}>Check {hint.search} in the list</Button>
-            )}
-          </div>
-        </div>
-      )}
-      {matches.length === 0 ? (
-        <div className="mt-6 rounded-lg border border-border p-6">
-          <h3 className="font-bold">We can't confirm that one from the name alone</h3>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{unsupportedNote}</p>
-        </div>
-      ) : (
-        <>
-          <ul className="mt-6 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
-            {matches.map((item) => (
-              <li key={item.id} className="bg-background p-6">
-                <div className="flex items-center gap-2">
-                  <Check className="text-primary" />
-                  <h3 className="text-lg font-bold">{item.brand}</h3>
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.models}</p>
+      {deviceList.length > 0 && (
+        <details className="group mt-10 border-y border-border">
+          <summary className="flex cursor-pointer list-none items-center justify-between py-5 font-bold">
+            See every phone we've confirmed
+            <ChevronDown className="transition-transform group-open:rotate-180" />
+          </summary>
+          <ul className="grid gap-x-10 gap-y-6 pb-8 sm:grid-cols-2 lg:grid-cols-3">
+            {deviceList.map((item) => (
+              <li key={item.id}>
+                <h4 className="font-bold">{item.brand}</h4>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.models}</p>
               </li>
             ))}
           </ul>
-          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-muted-foreground">{unsupportedNote}</p>
-        </>
+          <p className="pb-8 text-sm text-muted-foreground">Phones bought from a network on contract may be locked to that network. They need to be unlocked before they can use another eSIM.</p>
+        </details>
       )}
     </section>
   );

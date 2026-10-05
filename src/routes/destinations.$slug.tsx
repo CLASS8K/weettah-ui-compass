@@ -5,22 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Footer, Header, SectionHead } from "@/components/site/chrome";
 import { CheckoutDialog } from "@/components/site/checkout-dialog";
-import { faqs, steps } from "@/components/site/data";
+import { faqs, getSteps } from "@/components/site/data";
+import { getPaymentMode } from "@/lib/payments.functions";
 import { getDestination, type PublicPlan } from "@/lib/plans.functions";
 
 export const Route = createFileRoute("/destinations/$slug")({
   staticData: { sitemap: true },
   loader: async ({ params }) => {
-    const result = await getDestination({ data: { slug: params.slug } });
+    const [result, mode] = await Promise.all([
+      getDestination({ data: { slug: params.slug } }),
+      getPaymentMode().catch(() => ({ online: false })),
+    ]);
     if (!result.destination) throw notFound();
-    return result;
+    return { ...result, paymentsOnline: mode.online };
   },
   head: ({ loaderData }) => {
     if (!loaderData?.destination) {
-      return { meta: [{ title: "Destination not found — Weettah" }, { name: "robots", content: "noindex" }] };
+      return { meta: [{ title: "Destination not found | Weettah" }, { name: "robots", content: "noindex" }] };
     }
     const { country, fromPrice, plans } = loaderData.destination;
-    const title = `${country} travel eSIM — data plans from ${fromPrice} | Weettah`;
+    const title = `${country} travel eSIM: data plans from ${fromPrice} | Weettah`;
     const description = `Stay online in ${country} with a Weettah eSIM. Compare ${plans.length} data plan${plans.length === 1 ? "" : "s"} from ${fromPrice}, with clear one-off pricing.`;
     return {
       meta: [
@@ -52,7 +56,7 @@ function DestinationNotFound() {
 }
 
 function DestinationPage() {
-  const { destination, related, guide } = Route.useLoaderData();
+  const { destination, related, guide, paymentsOnline } = Route.useLoaderData();
   const [selectedPlan, setSelectedPlan] = useState<PublicPlan | null>(null);
   if (!destination) return <DestinationNotFound />;
 
@@ -111,7 +115,7 @@ function DestinationPage() {
             <p className="mt-5 max-w-2xl leading-relaxed text-secondary-foreground/80">
               {guide?.intro
                 ? guide.intro
-                : `Land in ${destination.country} already online. Install before you fly, keep your usual number for calls and messages, and pay one clear price from ${destination.fromPrice} — no roaming bills waiting when you get home.`}
+                : `Land in ${destination.country} already online. Install before you fly, keep your usual number for calls and messages, and pay one clear price from ${destination.fromPrice}. No roaming bill waiting when you get home.`}
             </p>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold">
               <span className="flex items-center gap-2"><Check className="text-surface" />Keep your number</span>
@@ -165,7 +169,7 @@ function DestinationPage() {
 
 
         <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
-          <SectionHead label="Plans" title={`Data plans for ${destination.country}`} body="One-off payment. Top up anytime if the data runs out — nothing renews on its own." />
+          <SectionHead label="Plans" title={`Data plans for ${destination.country}`} body="One-off payment. Nothing renews on its own, and you can add more data any time." />
           <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
             {destination.plans.map((plan) => (
               <article key={plan.id} className="flex min-h-60 flex-col bg-background p-6">
@@ -195,7 +199,7 @@ function DestinationPage() {
           <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
             <SectionHead label="How it works" title={`Getting connected in ${destination.country}`} />
             <ol className="mt-10 grid border-y border-border md:grid-cols-3">
-              {steps.map((step, index) => (
+              {getSteps(paymentsOnline).map((step, index) => (
                 <li key={step.title} className="border-b border-border py-8 md:border-b-0 md:border-r md:px-8 md:first:pl-0 md:last:border-r-0">
                   <p className="font-display text-5xl font-extrabold text-primary">0{index + 1}</p>
                   <h3 className="mt-8 text-xl font-bold">{step.title}</h3>
@@ -237,7 +241,7 @@ function DestinationPage() {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </main>
       <Footer />
-      <CheckoutDialog plan={selectedPlan} open={selectedPlan !== null} onOpenChange={(open) => { if (!open) setSelectedPlan(null); }} />
+      <CheckoutDialog paymentsOnline={paymentsOnline} plan={selectedPlan} open={selectedPlan !== null} onOpenChange={(open) => { if (!open) setSelectedPlan(null); }} />
     </div>
   );
 }

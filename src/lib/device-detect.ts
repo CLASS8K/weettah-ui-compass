@@ -1,62 +1,79 @@
 import { matchEsimAndroid } from "./esim-devices";
-export type DeviceHint = {
-  name: string;
-  verdict: "likely" | "unknown";
-  note: string;
-  search: string;
+
+export type DeviceCheck =
+  | { status: "supported"; device: string; note: string }
+  | { status: "check"; device: string; note: string }
+  | { status: "desktop" };
+
+type HighEntropyNavigator = Navigator & {
+  userAgentData?: {
+    mobile?: boolean;
+    platform?: string;
+    getHighEntropyValues?: (hints: string[]) => Promise<{ model?: string; platform?: string }>;
+  };
 };
 
-/** Best-effort read of the visitor's own phone from the browser. Never definitive — always paired with the *#06# tip. */
-export function detectDevice(userAgent: string): DeviceHint | null {
-  const ua = userAgent || "";
+const DIAL_TIP = "To be sure, dial *#06#. If an EID number appears, your phone supports eSIM.";
 
-  if (/iPad/i.test(ua)) {
+// Best-effort automatic check from the visitor's own browser. Browsers never
+// report eSIM support directly, so we infer it from the iOS version (iOS 17+
+// only runs on iPhone XS/XR and newer, which all have eSIM) or the Android
+// model code (via User-Agent Client Hints on Chrome, or the classic UA).
+export async function checkThisDevice(nav: Navigator): Promise<DeviceCheck> {
+  const ua = nav.userAgent || "";
+
+  if (/iPad/i.test(ua) || (/Macintosh/i.test(ua) && nav.maxTouchPoints > 1)) {
     return {
-      name: "iPad",
-      verdict: "likely",
-      note: "iPad Pro (3rd generation) and newer, iPad Air 3 and newer, iPad mini 5 and newer all take an eSIM — as long as it's the Wi-Fi + Cellular model.",
-      search: "iPad",
+      status: "check",
+      device: "iPad",
+      note: "Recent iPads support eSIM if they're the Wi-Fi + Cellular model. Wi-Fi-only iPads can't use one.",
     };
   }
 
   if (/iPhone/i.test(ua)) {
-    const version = Number(/OS (\d+)[._]/.exec(ua)?.[1] ?? 0);
-    return version >= 15
-      ? {
-          name: "iPhone",
-          verdict: "likely",
-          note: "Your iPhone runs a recent version of iOS, so it almost certainly takes an eSIM. Every iPhone from the XS and XR onwards does — unless it's locked to one network.",
-          search: "iPhone",
-        }
-      : {
-          name: "iPhone",
-          verdict: "unknown",
-          note: "We can see you're on an iPhone but not which one. iPhone XS, XR and newer take an eSIM.",
-          search: "iPhone",
-        };
-  }
-
-  if (/Android/i.test(ua)) {
-    const model = /Android [\d.]+;\s*([^;)]+?)(?:\s+Build)?[;)]/.exec(ua)?.[1]?.trim();
-    const clean = model && model.length < 40 && !/^[a-z]{2}-[a-z]{2}$/i.test(model) ? model : undefined;
-    const matched = clean ? matchEsimAndroid(clean) : null;
-    if (matched) {
+    const major = Number(/OS (\d+)[._]/.exec(ua)?.[1] ?? 0);
+    if (major >= 17) {
       return {
-        name: matched,
-        verdict: "likely",
-        note: `Your ${matched} supports eSIM. You're all set — just complete your purchase and scan the QR code we send you.`,
-        search: matched,
+        status: "supported",
+        device: "iPhone",
+        note: "Your iPhone runs iOS 17 or later, and every iPhone that can run it supports eSIM. It just needs to be unlocked, not tied to one network.",
       };
     }
     return {
-      name: clean ? `Android — ${clean}` : "Android phone",
-      verdict: "unknown",
-      note: clean
-        ? `We can see your phone reports itself as “${clean}”. Search it below, or dial *#06# — if an EID number appears, it takes an eSIM.`
-        : "We can see you're on Android but not which model. Dial *#06# — if an EID number appears, your phone takes an eSIM.",
-      search: clean ?? "",
+      status: "check",
+      device: "iPhone",
+      note: `iPhone XS, XR and every newer iPhone support eSIM. Your iOS version doesn't tell us which model you have. ${DIAL_TIP}`,
     };
   }
 
-  return null;
+  const uaData = (nav as HighEntropyNavigator).userAgentData;
+  const isAndroid = /Android/i.test(ua) || uaData?.platform === "Android";
+  if (isAndroid) {
+    let model = "";
+    try {
+      model = (await uaData?.getHighEntropyValues?.(["model"]))?.model?.trim() ?? "";
+    } catch {
+      // Client Hints unavailable (Firefox, Samsung Internet on some versions).
+    }
+    if (!model) {
+      const fromUa = /Android [\d.]+;\s*([^;)]+?)(?:\s+Build)?[;)]/.exec(ua)?.[1]?.trim() ?? "";
+      // Chrome's reduced UA reports the placeholder "K" instead of the model.
+      if (fromUa && fromUa !== "K" && fromUa.length < 40) model = fromUa;
+    }
+    const matched = model ? matchEsimAndroid(model) : null;
+    if (matched) {
+      return {
+        status: "supported",
+        device: matched,
+        note: "Your phone supports eSIM. It just needs to be unlocked, not tied to one network.",
+      };
+    }
+    return {
+      status: "check",
+      device: model ? `Android (${model})` : "Android phone",
+      note: `This model isn't on our list yet, but many Android phones support eSIM. ${DIAL_TIP}`,
+    };
+  }
+
+  return { status: "desktop" };
 }

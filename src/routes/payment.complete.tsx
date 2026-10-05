@@ -16,7 +16,7 @@ export const Route = createFileRoute("/payment/complete")({
     status: typeof search["status"] === "string" ? search["status"] : undefined,
   }),
   head: () => ({ meta: [
-    { title: "Confirming your payment — Weettah" },
+    { title: "Confirming your payment | Weettah" },
     { name: "robots", content: "noindex" },
   ] }),
   component: PaymentCompletePage,

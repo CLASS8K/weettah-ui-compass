@@ -13,9 +13,9 @@ export const Route = createFileRoute("/my-esim")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "Find my eSIM — Weettah" },
+      { title: "Find my eSIM | Weettah" },
       { name: "description", content: "Look up a Weettah order with your email and order reference to check payment, see your eSIM status, and reopen your install page." },
-      { property: "og:title", content: "Find my eSIM — Weettah" },
+      { property: "og:title", content: "Find my eSIM | Weettah" },
       { property: "og:description", content: "Check your Weettah order and reopen your eSIM install page." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -27,8 +27,8 @@ export const Route = createFileRoute("/my-esim")({
 const statusCopy: Record<string, { title: string; body: string }> = {
   ready: { title: "Your eSIM is ready", body: "Open your install page to scan the QR code or copy the manual code." },
   preparing: { title: "We're preparing your eSIM", body: "This usually takes a minute or two. Refresh this page shortly." },
-  not_paid: { title: "Payment not received", body: "We haven't received payment for this order. If money left your account, don't pay again — email support@weettah.com with this reference." },
-  attention: { title: "Something needs our attention", body: "Your payment went through but the eSIM didn't issue. Contact support with this reference and we'll sort it out." },
+  not_paid: { title: "Payment not received", body: "We haven't received payment for this order. If money left your account, don't pay again. Email support@weettah.com with this reference." },
+  attention: { title: "Something needs our attention", body: "Your payment went through, but we couldn't issue your eSIM. Contact support with this reference and we'll sort it out." },
 };
 
 function MyEsim() {
@@ -72,7 +72,7 @@ function MyEsim() {
         </p>
         <form onSubmit={submit} className="mt-10 grid gap-5 rounded-lg border border-border p-6 sm:grid-cols-2">
           <div className="space-y-2"><Label htmlFor="email">Email address</Label><Input id="email" name="email" type="email" autoComplete="email" required /></div>
-          <div className="space-y-2"><Label htmlFor="reference">Order reference</Label><Input id="reference" name="reference" placeholder="WTH-…" required /></div>
+          <div className="space-y-2"><Label htmlFor="reference">Order reference</Label><Input id="reference" name="reference" placeholder="WEETTAH-…" required /></div>
           <div className="sm:col-span-2">
             <Button type="submit" size="lg" className="h-12 w-full" disabled={loading}>
               {loading ? <><Loader2 className="animate-spin" />Checking…</> : <><Search />Find my order</>}
@@ -84,7 +84,7 @@ function MyEsim() {
 
         {result?.found === false && (
           <p role="status" className="mt-6 rounded-md border border-border px-4 py-4 text-sm leading-relaxed">
-            We couldn't find an order with that email and reference. Check both for typos — the reference is on the page you saw after paying.
+            We couldn't find an order with that email and reference. Check both for typos. Your reference is on the page you saw after paying.
           </p>
         )}
 
