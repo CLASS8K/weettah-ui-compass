@@ -136,6 +136,13 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
             </div>
             <div className="border-y border-border py-5">
               <p className="text-xs font-bold uppercase text-muted-foreground">Payment</p>
+              {paymentsOnline && (
+                <ul className="mt-3 flex flex-wrap gap-2" aria-label="Accepted payment methods">
+                  {["Airtel Money", "TNM Mpamba", "Visa", "Mastercard"].map((method) => (
+                    <li key={method} className="rounded-full border border-border px-3 py-1 text-xs font-semibold">{method}</li>
+                  ))}
+                </ul>
+              )}
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{paymentsOnline ? "Next, you'll go to PayChangu's secure page to pay with Airtel Money, TNM Mpamba or card. Your eSIM is issued as soon as the payment clears." : "Online payment isn't switched on yet. Send your request and we'll email you the payment details. You won't be charged anything here."}</p>
             </div>
             <div className="rounded-md border border-border p-4">

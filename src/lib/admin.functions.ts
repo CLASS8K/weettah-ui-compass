@@ -83,7 +83,7 @@ export const listAdminOrders = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await assertAdmin(context);
     let query = supabaseAdmin.from("payment_orders")
-      .select("merchant_reference, country, data_allowance, validity_days, amount_minor, currency, customer_email, customer_first_name, customer_last_name, customer_phone, status, payment_method, fulfillment_status, fulfillment_error, supplier_order_no, created_at, updated_at")
+      .select("merchant_reference, country, data_allowance, validity_days, amount_minor, currency, customer_email, customer_first_name, customer_last_name, customer_phone, status, payment_method, provider_status_description, confirmation_code, fulfillment_status, fulfillment_error, supplier_order_no, created_at, updated_at")
       .order("created_at", { ascending: false }).limit(100);
     if (data.status !== "all") query = query.eq("status", data.status);
     if (data.fulfillment !== "all") query = query.eq("fulfillment_status", data.fulfillment);
@@ -91,7 +91,16 @@ export const listAdminOrders = createServerFn({ method: "POST" })
     if (safeQuery) query = query.or(`merchant_reference.ilike.%${safeQuery}%,customer_email.ilike.%${safeQuery}%,country.ilike.%${safeQuery}%`);
     const { data: orders, error } = await query;
     if (error) throw new Error("Unable to load orders");
-    return orders;
+    const { decodePaymentDetails } = await import("./paychangu.server");
+    return (orders ?? []).map(({ provider_status_description, ...order }) => {
+      const details = decodePaymentDetails(provider_status_description);
+      return {
+        ...order,
+        payment: details
+          ? { charged: details.charge, method: details.method ?? null, account: details.account ?? null, fee: details.fee ?? null }
+          : null,
+      };
+    });
   });
 
 const markPaidSchema = z.object({ reference: z.string().min(1) });
@@ -316,7 +325,7 @@ export const exportAdminOrders = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await assertAdmin(context);
     let query = supabaseAdmin.from("payment_orders")
-      .select("merchant_reference, created_at, updated_at, country, data_allowance, validity_days, amount_minor, currency, status, payment_method, confirmation_code, fulfillment_status, fulfillment_error, supplier_order_no, iccid, customer_first_name, customer_last_name, customer_email, customer_phone")
+      .select("merchant_reference, created_at, updated_at, country, data_allowance, validity_days, amount_minor, currency, status, payment_method, provider_status_description, confirmation_code, fulfillment_status, fulfillment_error, supplier_order_no, iccid, customer_first_name, customer_last_name, customer_email, customer_phone")
       .order("created_at", { ascending: false }).limit(5000);
     if (data.status !== "all") query = query.eq("status", data.status);
     if (data.fulfillment !== "all") query = query.eq("fulfillment_status", data.fulfillment);
@@ -324,12 +333,15 @@ export const exportAdminOrders = createServerFn({ method: "POST" })
     if (safeQuery) query = query.or(`merchant_reference.ilike.%${safeQuery}%,customer_email.ilike.%${safeQuery}%,country.ilike.%${safeQuery}%`);
     const { data: orders, error } = await query;
     if (error) throw new Error("Unable to export orders");
-    const headers = ["Reference", "Created", "Updated", "Country", "Data", "Days", "Amount", "Currency", "Payment status", "Payment method", "Confirmation code", "Activation status", "Activation error", "Supplier order", "ICCID", "First name", "Last name", "Email", "Phone"];
+    const { decodePaymentDetails } = await import("./paychangu.server");
+    const headers = ["Reference", "Created", "Updated", "Country", "Data", "Days", "Amount", "Currency", "Charged", "Charged currency", "Gateway fee", "Payment status", "Payment method", "Paid from", "Confirmation code", "Activation status", "Activation error", "Supplier order", "ICCID", "First name", "Last name", "Email", "Phone"];
     const lines = [headers.join(",")];
     for (const order of orders ?? []) {
+      const details = decodePaymentDetails(order.provider_status_description);
       lines.push([
         order.merchant_reference, order.created_at, order.updated_at, order.country, order.data_allowance, order.validity_days,
-        (order.amount_minor / 100).toFixed(2), order.currency, order.status, order.payment_method, order.confirmation_code,
+        (order.amount_minor / 100).toFixed(2), order.currency, details?.charge.amount, details?.charge.currency, details?.fee,
+        order.status, details?.method ?? order.payment_method, details?.account, order.confirmation_code,
         order.fulfillment_status, order.fulfillment_error, order.supplier_order_no, order.iccid,
         order.customer_first_name, order.customer_last_name, order.customer_email, order.customer_phone,
       ].map(csvCell).join(","));

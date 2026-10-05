@@ -38,15 +38,40 @@ export function computeCharge(amountMinor: number, currency: string): Charge {
 // The charged amount is locked at checkout and stored on the order so that
 // verification compares against what we asked for, even if the rate changes.
 export function encodeCharge(charge: Charge) {
-  return `${CHARGE_PREFIX}${charge.currency}:${charge.amount}`;
+  return JSON.stringify({ charge } satisfies Pick<PaymentDetails, "charge">);
+}
+
+// Stored in payment_orders.provider_status_description (server-only column).
+export type PaymentDetails = {
+  charge: Charge;
+  method?: string;
+  account?: string | null;
+  fee?: number | null;
+};
+
+export function decodePaymentDetails(value: string | null): PaymentDetails | null {
+  if (!value) return null;
+  if (value.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(value) as PaymentDetails;
+      const { currency, amount } = parsed.charge ?? ({} as Charge);
+      if ((currency === "MWK" || currency === "USD") && Number(amount) > 0) return parsed;
+    } catch {
+      return null;
+    }
+    return null;
+  }
+  // Legacy format from the first release: "paychangu:MWK:1900 via Mobile Money".
+  if (!value.startsWith(CHARGE_PREFIX)) return null;
+  const [main, via] = value.slice(CHARGE_PREFIX.length).split(" via ");
+  const [currency, amount] = (main ?? "").split(":");
+  const parsed = Number(amount);
+  if ((currency !== "MWK" && currency !== "USD") || !Number.isFinite(parsed) || parsed <= 0) return null;
+  return { charge: { currency, amount: parsed }, method: via?.trim() || undefined };
 }
 
 export function decodeCharge(value: string | null): Charge | null {
-  if (!value?.startsWith(CHARGE_PREFIX)) return null;
-  const [currency, amount] = value.slice(CHARGE_PREFIX.length).split(":");
-  const parsed = Number(amount);
-  if ((currency !== "MWK" && currency !== "USD") || !Number.isFinite(parsed) || parsed <= 0) return null;
-  return { currency, amount: parsed };
+  return decodePaymentDetails(value)?.charge ?? null;
 }
 
 type InitiateInput = {
@@ -100,7 +125,33 @@ export type VerifiedTransaction = {
   currency: string;
   reference: string | null;
   channel: string | null;
+  method: string;
+  account: string | null;
+  fee: number | null;
 };
+
+// Turns PayChangu's authorization block into a label people recognise:
+// "Airtel Money", "TNM Mpamba", "Visa", "Mastercard", or a generic fallback.
+function describeMethod(authorization: Record<string, unknown>): { method: string; account: string | null } {
+  const text = JSON.stringify(authorization).toLowerCase();
+  const channel = String(authorization["channel"] ?? "");
+  const brand = String(authorization["brand"] ?? authorization["card_type"] ?? "").toLowerCase();
+  const cardNumber = String(authorization["card_number"] ?? authorization["last4"] ?? "");
+  const mobile = String(authorization["mobile_number"] ?? authorization["phone"] ?? authorization["msisdn"] ?? "");
+
+  if (/card/i.test(channel) || cardNumber) {
+    const method = brand.includes("visa") ? "Visa" : brand.includes("master") ? "Mastercard" : "Card";
+    const last4 = cardNumber.replace(/\D/g, "").slice(-4);
+    return { method, account: last4 ? `•••• ${last4}` : null };
+  }
+  const method = text.includes("airtel") ? "Airtel Money"
+    : text.includes("tnm") || text.includes("mpamba") ? "TNM Mpamba"
+    : text.includes("changu") ? "Changu MoMo"
+    : /mobile/i.test(channel) ? "Mobile money"
+    : channel || "PayChangu";
+  const digits = mobile.replace(/\D/g, "");
+  return { method, account: digits.length >= 6 ? `${digits.slice(0, 3)}•••${digits.slice(-3)}` : null };
+}
 
 // Always re-query PayChangu before giving value — never trust redirects or webhook bodies alone.
 export async function verifyTransaction(txRef: string): Promise<VerifiedTransaction | null> {
@@ -117,7 +168,8 @@ export async function verifyTransaction(txRef: string): Promise<VerifiedTransact
           amount?: number | string;
           currency?: string;
           reference?: string;
-          authorization?: { channel?: string };
+          charges?: number | string;
+          authorization?: Record<string, unknown>;
         };
       }
     | null;
@@ -129,7 +181,9 @@ export async function verifyTransaction(txRef: string): Promise<VerifiedTransact
     amount: Number(data.amount),
     currency: String(data.currency ?? ""),
     reference: data.reference ? String(data.reference) : null,
-    channel: data.authorization?.channel ? String(data.authorization.channel) : null,
+    channel: data.authorization?.["channel"] ? String(data.authorization["channel"]) : null,
+    ...describeMethod(data.authorization ?? {}),
+    fee: Number.isFinite(Number(data.charges)) ? Number(data.charges) : null,
   };
 }
 
