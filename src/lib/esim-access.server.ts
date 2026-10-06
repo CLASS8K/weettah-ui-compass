@@ -37,7 +37,7 @@ async function getConfiguration() {
   }
 }
 
-async function supplierRequest<T>(path: string, payload: Record<string, unknown>) {
+export async function supplierRequest<T>(path: string, payload: Record<string, unknown>) {
   const { accessCode, apiBase } = await getConfiguration();
   const body = JSON.stringify(payload);
   const timestamp = Date.now().toString();

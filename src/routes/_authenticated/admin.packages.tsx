@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, Loader2, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { PricingPanel } from "@/components/admin/pricing-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +26,7 @@ function PackagesPage() {
   const client = useQueryClient();
   const plans = useQuery({ queryKey: ["admin-plans"], queryFn: () => load() });
   const mutation = useMutation({ mutationFn: save, onSuccess: () => client.invalidateQueries({ queryKey: ["admin-plans"] }) });
-  return <AdminShell title="Packages" description="Set the customer price, storefront visibility, and private supplier package code for each plan.">{plans.isLoading ? <p className="flex items-center gap-2 py-16 text-muted-foreground"><Loader2 className="animate-spin" />Loading packages…</p> : <div className="grid gap-4 xl:grid-cols-2">{plans.data?.map((plan) => <PackageEditor key={plan.id} plan={plan} onSave={(data) => mutation.mutate({ data })} saving={mutation.isPending} />)}</div>}</AdminShell>;
+  return <AdminShell title="Packages" description="Set the exchange rate and markup, then storefront visibility and supplier codes for each plan. Prices here are in USD; customers pay the kwacha equivalent."><PricingPanel />{plans.isLoading ? <p className="flex items-center gap-2 py-16 text-muted-foreground"><Loader2 className="animate-spin" />Loading packages…</p> : <div className="grid gap-4 xl:grid-cols-2">{plans.data?.map((plan) => <PackageEditor key={plan.id} plan={plan} onSave={(data) => mutation.mutate({ data })} saving={mutation.isPending} />)}</div>}</AdminShell>;
 }
 
 function PackageEditor({ plan, onSave, saving }: { plan: Awaited<ReturnType<typeof listAdminPlans>>[number]; onSave: (data: { id: string; amountMinor: number; supplierPackageCode: string; isActive: boolean; isPopular: boolean; displayOrder: number }) => void; saving: boolean }) {

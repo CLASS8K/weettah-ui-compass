@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { toMwk, type PricingSettings } from "./pricing.server";
 
 // PayChangu Standard Checkout — https://developer.paychangu.com/docs/standard-checkout
 // Server-only: uses the secret key. Never import this from client code.
@@ -22,10 +23,15 @@ export function siteUrl() {
   return (process.env["SITE_URL"] || "https://www.weettah.com").replace(/\/+$/, "");
 }
 
-// Plans are priced in USD. Mobile money in Malawi settles in MWK, so when
-// PAYCHANGU_MWK_PER_USD is set we charge the kwacha equivalent (rounded up to
-// a whole kwacha). Without it we charge in USD (card only in practice).
-export function computeCharge(amountMinor: number, currency: string): Charge {
+// Plans are priced in USD and sold in MWK. With pricing settings (from
+// pricing.server) we charge exactly the kwacha price shown on the site. Without
+// them we fall back to PAYCHANGU_MWK_PER_USD, and failing that, USD.
+export function computeCharge(
+  amountMinor: number,
+  currency: string,
+  pricing?: Pick<PricingSettings, "mwkPerUsd" | "mwkRounding"> | null,
+): Charge {
+  if (currency === "USD" && pricing) return { amount: toMwk(amountMinor, pricing), currency: "MWK" };
   const rate = Number(process.env["PAYCHANGU_MWK_PER_USD"] || "");
   if (currency === "USD" && Number.isFinite(rate) && rate > 0) {
     return { amount: Math.ceil((amountMinor / 100) * rate), currency: "MWK" };

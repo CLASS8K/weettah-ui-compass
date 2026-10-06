@@ -203,6 +203,59 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_costs: {
+        Row: {
+          plan_id: string
+          source: string
+          synced_at: string
+          wholesale_usd: number
+        }
+        Insert: {
+          plan_id: string
+          source?: string
+          synced_at?: string
+          wholesale_usd: number
+        }
+        Update: {
+          plan_id?: string
+          source?: string
+          synced_at?: string
+          wholesale_usd?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_costs_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: true
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_price_history: {
+        Row: {
+          amount_minor: number
+          id: number
+          plan_id: string
+          reason: string
+          recorded_at: string
+        }
+        Insert: {
+          amount_minor: number
+          id?: never
+          plan_id: string
+          reason: string
+          recorded_at?: string
+        }
+        Update: {
+          amount_minor?: number
+          id?: never
+          plan_id?: string
+          reason?: string
+          recorded_at?: string
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           amount_minor: number
@@ -251,6 +304,39 @@ export type Database = {
           supplier_package_code?: string | null
           updated_at?: string
           validity_days?: number
+        }
+        Relationships: []
+      }
+      pricing_settings: {
+        Row: {
+          id: number
+          markup: number
+          min_markup: number
+          mwk_per_usd: number
+          mwk_rounding: number
+          rate_updated_at: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: number
+          markup?: number
+          min_markup?: number
+          mwk_per_usd: number
+          mwk_rounding?: number
+          rate_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: number
+          markup?: number
+          min_markup?: number
+          mwk_per_usd?: number
+          mwk_rounding?: number
+          rate_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -310,6 +396,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_price_floor: { Args: { _reason?: string }; Returns: number }
+      reprice_plans: { Args: { _reason?: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

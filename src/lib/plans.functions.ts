@@ -14,6 +14,9 @@ export type PublicPlan = {
   price: string;
   amountMinor: number;
   currency: string;
+  // What the customer pays at checkout, in whole kwacha. Null only if no
+  // exchange rate is configured, in which case `price` falls back to USD.
+  priceMwk: number | null;
   popular: boolean;
 };
 
@@ -30,7 +33,17 @@ function formatPrice(amountMinor: number, currency: string) {
   return new Intl.NumberFormat("en", { style: "currency", currency }).format(amountMinor / 100);
 }
 
+function formatMwk(amount: number) {
+  return `MWK ${new Intl.NumberFormat("en", { maximumFractionDigits: 0 }).format(amount)}`;
+}
+
+function displayPrice(plan: Pick<PublicPlan, "priceMwk" | "amountMinor" | "currency">) {
+  return plan.priceMwk !== null ? formatMwk(plan.priceMwk) : formatPrice(plan.amountMinor, plan.currency);
+}
+
 async function loadActivePlans(): Promise<PublicPlan[]> {
+  const { getPricingSettings, toMwk } = await import("./pricing.server");
+  const pricing = await getPricingSettings();
   const supabasePublic = createClient<Database>(
     process.env["SUPABASE_URL"]!,
     process.env["SUPABASE_PUBLISHABLE_KEY"]!,
@@ -42,19 +55,23 @@ async function loadActivePlans(): Promise<PublicPlan[]> {
     .eq("is_active", true)
     .order("display_order");
   if (error) throw new Error("Unable to load plans");
-  return (data ?? []).map((plan) => ({
-    id: plan.id,
-    country: countryDisplayName(plan.country, plan.region),
-    slug: slugify(plan.country),
-    flag: plan.flag,
-    region: plan.region,
-    data: plan.data_allowance,
-    days: plan.validity_days,
-    amountMinor: plan.amount_minor,
-    currency: plan.currency,
-    price: formatPrice(plan.amount_minor, plan.currency),
-    popular: plan.is_popular,
-  }));
+  return (data ?? []).map((plan) => {
+    const priceMwk = pricing && plan.currency === "USD" ? toMwk(plan.amount_minor, pricing) : null;
+    return {
+      id: plan.id,
+      country: countryDisplayName(plan.country, plan.region),
+      slug: slugify(plan.country),
+      flag: plan.flag,
+      region: plan.region,
+      data: plan.data_allowance,
+      days: plan.validity_days,
+      amountMinor: plan.amount_minor,
+      currency: plan.currency,
+      priceMwk,
+      price: displayPrice({ priceMwk, amountMinor: plan.amount_minor, currency: plan.currency }),
+      popular: plan.is_popular,
+    };
+  });
 }
 
 // Popular first, then Africa (our home market), then A–Z by name.
@@ -103,7 +120,7 @@ function groupDestinations(plans: PublicPlan[]): Destination[] {
   for (const destination of map.values()) {
     destination.plans.sort((a, b) => a.amountMinor - b.amountMinor);
     const cheapest = destination.plans[0];
-    if (cheapest) destination.fromPrice = formatPrice(cheapest.amountMinor, cheapest.currency);
+    if (cheapest) destination.fromPrice = displayPrice(cheapest);
   }
   return [...map.values()].sort(compareDestinations);
 }
