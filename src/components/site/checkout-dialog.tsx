@@ -57,7 +57,7 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
                 <span className="text-sm text-secondary-foreground/70">Plan price</span>
                 <span className="font-display text-3xl font-extrabold">{plan.price}</span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">{paymentsOnline ? "One-off price with no activation fees, and nothing renews. Mobile money is charged in kwacha at today's rate, and you'll see the exact amount before you confirm." : "One-off price in US dollars with no activation fees, and nothing renews. You won't be charged anything now."}</p>
+              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">{paymentsOnline ? "One-off price in kwacha, with no activation fees and no extra payment charges. This is exactly what you pay by Airtel Money, TNM Mpamba or card, and nothing renews." : "One-off price in US dollars with no activation fees, and nothing renews. You won't be charged anything now."}</p>
             </div>
           </div>
 

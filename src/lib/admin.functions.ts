@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const APPROVED_ADMINS = new Set(["admin@weettah.com", "frankntaukira@gmail.com"]);
 
-async function assertAdmin(context: { supabase: any; userId: string }) {
+export async function assertAdmin(context: { supabase: any; userId: string }) {
   const { data: userData, error: userError } = await context.supabase.auth.getUser();
   const email = userData.user?.email?.toLowerCase();
   if (userError || !email || !userData.user?.email_confirmed_at || !APPROVED_ADMINS.has(email)) {

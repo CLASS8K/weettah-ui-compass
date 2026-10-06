@@ -50,7 +50,7 @@ const sections: LegalSection[] = [
     body: (
       <>
         <ul>
-          <li>Prices are shown in US dollars and include all fees we charge. There are no activation fees, and nothing renews automatically.</li>
+          <li>Prices are shown and charged in Malawian kwacha (MWK) and include all fees we charge, including payment processing. There are no activation fees, and nothing renews automatically.</li>
           <li>If you pay in Malawi kwacha, for example with Airtel Money or TNM Mpamba, we convert the price at our current rate. You'll see the exact amount before you confirm.</li>
           <li>Payments are processed by PayChangu. We never see or store your card number or mobile money PIN.</li>
           <li>Your bank or mobile money provider may charge its own fees. Those are between you and them.</li>

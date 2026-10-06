@@ -89,8 +89,8 @@ function DestinationPage() {
         offers: destination.plans.map((plan) => ({
           "@type": "Offer",
           name: `${plan.data} · ${plan.days} days`,
-          price: (plan.amountMinor / 100).toFixed(2),
-          priceCurrency: plan.currency,
+          price: plan.priceMwk !== null ? String(plan.priceMwk) : (plan.amountMinor / 100).toFixed(2),
+          priceCurrency: plan.priceMwk !== null ? "MWK" : plan.currency,
           availability: "https://schema.org/InStock",
         })),
       },
@@ -182,7 +182,7 @@ function DestinationPage() {
                   <p>
                     <span className="text-xs text-muted-foreground">Total, all in</span>
                     <span className="block font-display text-2xl font-extrabold">{plan.price}</span>
-                    <span className="text-xs text-muted-foreground">charged in US dollars</span>
+                    <span className="text-xs text-muted-foreground">{plan.priceMwk !== null ? "all-in price in kwacha" : "charged in US dollars"}</span>
                   </p>
                   <Button onClick={() => setSelectedPlan(plan)}>Choose plan <ArrowRight /></Button>
                 </div>

@@ -42,7 +42,8 @@ export const requestOrder = createServerFn({ method: "POST" })
     const { paychanguConfigured, computeCharge, encodeCharge, initiateCheckout } = await import("./paychangu.server");
     if (!paychanguConfigured()) return { ok: true as const, reference, checkoutUrl: null };
 
-    const charge = computeCharge(plan.amount_minor, plan.currency);
+    const { getPricingSettings } = await import("./pricing.server");
+    const charge = computeCharge(plan.amount_minor, plan.currency, await getPricingSettings());
     const { error: chargeError } = await supabaseAdmin.from("payment_orders").update({
       payment_method: "paychangu",
       provider_status_description: encodeCharge(charge),
