@@ -17,6 +17,9 @@ export type PublicPlan = {
   // What the customer pays at checkout, in whole kwacha. Null only if no
   // exchange rate is configured, in which case `price` falls back to USD.
   priceMwk: number | null;
+  // Price for international Visa/Mastercard, charged in USD. Null when that
+  // option is switched off in Admin → Packages → Pricing.
+  priceUsd: string | null;
   popular: boolean;
 };
 
@@ -57,6 +60,7 @@ async function loadActivePlans(): Promise<PublicPlan[]> {
   if (error) throw new Error("Unable to load plans");
   return (data ?? []).map((plan) => {
     const priceMwk = pricing && plan.currency === "USD" ? toMwk(plan.amount_minor, pricing) : null;
+    const priceUsd = pricing?.cardUsdEnabled && priceMwk !== null ? formatPrice(plan.amount_minor, "USD") : null;
     return {
       id: plan.id,
       country: countryDisplayName(plan.country, plan.region),
@@ -68,6 +72,7 @@ async function loadActivePlans(): Promise<PublicPlan[]> {
       amountMinor: plan.amount_minor,
       currency: plan.currency,
       priceMwk,
+      priceUsd,
       price: displayPrice({ priceMwk, amountMinor: plan.amount_minor, currency: plan.currency }),
       popular: plan.is_popular,
     };

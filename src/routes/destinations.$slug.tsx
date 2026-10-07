@@ -182,7 +182,7 @@ function DestinationPage() {
                   <p>
                     <span className="text-xs text-muted-foreground">Total, all in</span>
                     <span className="block font-display text-2xl font-extrabold">{plan.price}</span>
-                    <span className="text-xs text-muted-foreground">{plan.priceMwk !== null ? "all-in price in kwacha" : "charged in US dollars"}</span>
+                    <span className="text-xs text-muted-foreground">{plan.priceUsd ? `or ${plan.priceUsd} by international card` : plan.priceMwk !== null ? "all-in price in kwacha" : "charged in US dollars"}</span>
                   </p>
                   <Button onClick={() => setSelectedPlan(plan)}>Choose plan <ArrowRight /></Button>
                 </div>

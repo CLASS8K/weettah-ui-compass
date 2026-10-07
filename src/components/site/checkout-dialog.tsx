@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Loader2, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,19 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
   const [confirmed, setConfirmed] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [reference, setReference] = useState<string | null>(null);
+  const [payWith, setPayWith] = useState<"mwk" | "usd">("mwk");
+
+  // Card-in-USD is only offered when the plan has a USD price (switched on in
+  // admin). Visitors whose device is set to Malawi time start on kwacha; others
+  // start on dollars. Either way they can switch.
+  const usdOffered = paymentsOnline && Boolean(plan?.priceUsd);
+  useEffect(() => {
+    if (!usdOffered) { setPayWith("mwk"); return; }
+    let local = false;
+    try { local = Intl.DateTimeFormat().resolvedOptions().timeZone === "Africa/Blantyre"; } catch { /* default to USD */ }
+    setPayWith(local ? "mwk" : "usd");
+  }, [usdOffered, plan?.id]);
+  const shownPrice = payWith === "usd" && plan?.priceUsd ? plan.priceUsd : plan?.price ?? "";
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -25,6 +38,7 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
     try {
       const result = await reserve({ data: {
         planId: plan.id,
+        payWith: usdOffered ? payWith : "mwk",
         firstName: String(values.get("firstName") || ""),
         lastName: String(values.get("lastName") || ""),
         email: String(values.get("email") || ""),
@@ -55,9 +69,9 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
             <div className="mt-6 border-t border-secondary-foreground/20 pt-5">
               <div className="flex items-end justify-between">
                 <span className="text-sm text-secondary-foreground/70">Plan price</span>
-                <span className="font-display text-3xl font-extrabold">{plan.price}</span>
+                <span className="font-display text-3xl font-extrabold">{shownPrice}</span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">{paymentsOnline ? "One-off price in kwacha, with no activation fees and no extra payment charges. This is exactly what you pay by Airtel Money, TNM Mpamba or card, and nothing renews." : "One-off price in US dollars with no activation fees, and nothing renews. You won't be charged anything now."}</p>
+              <p className="mt-2 text-xs leading-relaxed text-secondary-foreground/60">{!paymentsOnline ? "One-off price with no activation fees, and nothing renews. You won't be charged anything now." : payWith === "usd" ? "One-off price in US dollars, charged to your Visa or Mastercard. No activation fees and no extra payment charges from us, and nothing renews." : "One-off price in kwacha, with no activation fees and no extra payment charges. This is exactly what you pay by Airtel Money, TNM Mpamba or Malawian card, and nothing renews."}</p>
             </div>
           </div>
 
@@ -93,7 +107,7 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Price</p>
-                      <p className="mt-1 font-bold">{plan.price}</p>
+                      <p className="mt-1 font-bold">{shownPrice}</p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Booking reference</p>
@@ -136,14 +150,35 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
             </div>
             <div className="border-y border-border py-5">
               <p className="text-xs font-bold uppercase text-muted-foreground">Payment</p>
-              {paymentsOnline && (
+              {usdOffered && (
+                <div role="radiogroup" aria-label="How would you like to pay?" className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {([
+                    { value: "mwk", title: "Pay in kwacha", detail: "Airtel Money, TNM Mpamba or a Malawian card", price: plan.price },
+                    { value: "usd", title: "Pay in US dollars", detail: "International Visa or Mastercard", price: plan.priceUsd ?? "" },
+                  ] as const).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={payWith === option.value}
+                      onClick={() => setPayWith(option.value)}
+                      className={`rounded-md border p-4 text-left transition-colors ${payWith === option.value ? "border-primary bg-primary/5 ring-2 ring-primary" : "border-border hover:border-foreground/40"}`}
+                    >
+                      <span className="block font-bold">{option.title}</span>
+                      <span className="mt-1 block text-xs text-muted-foreground">{option.detail}</span>
+                      <span className="mt-3 block font-display text-xl font-extrabold">{option.price}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {paymentsOnline && !usdOffered && (
                 <ul className="mt-3 flex flex-wrap gap-2" aria-label="Accepted payment methods">
                   {["Airtel Money", "TNM Mpamba", "Visa", "Mastercard"].map((method) => (
                     <li key={method} className="rounded-full border border-border px-3 py-1 text-xs font-semibold">{method}</li>
                   ))}
                 </ul>
               )}
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{paymentsOnline ? "Next, you'll go to PayChangu's secure page to pay with Airtel Money, TNM Mpamba or card. Your eSIM is issued as soon as the payment clears." : "Online payment isn't switched on yet. Send your request and we'll email you the payment details. You won't be charged anything here."}</p>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{paymentsOnline ? (payWith === "usd" ? "Next, you'll go to PayChangu's secure page to pay by card in US dollars. Your eSIM is issued as soon as the payment clears." : "Next, you'll go to PayChangu's secure page to pay with Airtel Money, TNM Mpamba or card. Your eSIM is issued as soon as the payment clears.") : "Online payment isn't switched on yet. Send your request and we'll email you the payment details. You won't be charged anything here."}</p>
             </div>
             <div className="rounded-md border border-border p-4">
               <div className="flex items-start gap-3">
@@ -159,7 +194,7 @@ export function CheckoutDialog({ plan, open, onOpenChange, paymentsOnline }: { p
             <Button type="submit" size="lg" className="h-12 w-full" disabled={submitting || !confirmed}>
               {submitting
                 ? <><Loader2 className="animate-spin" />{paymentsOnline ? "Opening secure payment…" : "Sending your request…"}</>
-                : <><LockKeyhole />{paymentsOnline ? "Continue to payment" : "Reserve this eSIM"} · {plan.price}</>}
+                : <><LockKeyhole />{paymentsOnline ? "Continue to payment" : "Reserve this eSIM"} · {shownPrice}</>}
             </Button>
             <p className="text-center text-xs text-muted-foreground">By continuing, you agree to our <a href="/terms" target="_blank" rel="noopener" className="underline">terms</a> and <a href="/refunds" target="_blank" rel="noopener" className="underline">refund policy</a>, and you've read our <a href="/privacy" target="_blank" rel="noopener" className="underline">privacy policy</a>.</p>
           </form>

@@ -11,6 +11,8 @@ export type PricingSettings = {
   minMarkup: number;
   mwkRounding: number;
   rateUpdatedAt: string | null;
+  // International Visa/Mastercard can pay the plan's USD price in USD.
+  cardUsdEnabled: boolean;
 };
 
 const FALLBACK_ROUNDING = 50;
@@ -20,7 +22,7 @@ const FALLBACK_ROUNDING = 50;
 function fallbackSettings(): PricingSettings | null {
   const rate = Number(process.env["PAYCHANGU_MWK_PER_USD"] || "");
   if (!Number.isFinite(rate) || rate <= 0) return null;
-  return { mwkPerUsd: rate, markup: 1.5, minMarkup: 1.3, mwkRounding: FALLBACK_ROUNDING, rateUpdatedAt: null };
+  return { mwkPerUsd: rate, markup: 1.5, minMarkup: 1.3, mwkRounding: FALLBACK_ROUNDING, rateUpdatedAt: null, cardUsdEnabled: false };
 }
 
 export async function getPricingSettings(): Promise<PricingSettings | null> {
@@ -28,7 +30,7 @@ export async function getPricingSettings(): Promise<PricingSettings | null> {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("pricing_settings")
-      .select("mwk_per_usd, markup, min_markup, mwk_rounding, rate_updated_at")
+      .select("mwk_per_usd, markup, min_markup, mwk_rounding, rate_updated_at, card_usd_enabled")
       .eq("id", 1)
       .maybeSingle();
     if (error || !data) throw error ?? new Error("PRICING_SETTINGS_MISSING");
@@ -40,6 +42,7 @@ export async function getPricingSettings(): Promise<PricingSettings | null> {
       minMarkup: Number(data.min_markup),
       mwkRounding: Number(data.mwk_rounding) || FALLBACK_ROUNDING,
       rateUpdatedAt: data.rate_updated_at,
+      cardUsdEnabled: data.card_usd_enabled === true,
     };
   } catch (error) {
     console.error("Pricing settings unavailable, using PAYCHANGU_MWK_PER_USD fallback", error);
