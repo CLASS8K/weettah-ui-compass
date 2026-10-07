@@ -7,6 +7,9 @@ const checkoutSchema = z.object({
   lastName: z.string().trim().min(2).max(60),
   email: z.string().trim().email().max(200),
   phone: z.string().trim().min(7).max(24).regex(/^\+?[0-9 ()-]+$/),
+  // "mwk": mobile money and Malawian cards, charged in kwacha.
+  // "usd": international Visa/Mastercard, charged in US dollars (if enabled).
+  payWith: z.enum(["mwk", "usd"]).default("mwk"),
 });
 
 // Records the order, then hands the customer to PayChangu checkout. If PayChangu
@@ -43,7 +46,12 @@ export const requestOrder = createServerFn({ method: "POST" })
     if (!paychanguConfigured()) return { ok: true as const, reference, checkoutUrl: null };
 
     const { getPricingSettings } = await import("./pricing.server");
-    const charge = computeCharge(plan.amount_minor, plan.currency, await getPricingSettings());
+    const pricing = await getPricingSettings();
+    // USD only for card buyers who chose it, and only while the option is on;
+    // otherwise everyone pays the kwacha price shown on the site.
+    const charge = data.payWith === "usd" && pricing?.cardUsdEnabled && plan.currency === "USD"
+      ? { amount: plan.amount_minor / 100, currency: "USD" as const }
+      : computeCharge(plan.amount_minor, plan.currency, pricing);
     const { error: chargeError } = await supabaseAdmin.from("payment_orders").update({
       payment_method: "paychangu",
       provider_status_description: encodeCharge(charge),

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { getAdminPricing, importAdminPriceCsv, syncAdminSupplierPrices, updateAdminPricing } from "@/lib/pricing.functions";
 
 const STALE_RATE_DAYS = 7;
@@ -61,6 +62,7 @@ export function PricingPanel() {
   const [markup, setMarkup] = useState("");
   const [floor, setFloor] = useState("");
   const [rounding, setRounding] = useState("");
+  const [cardUsd, setCardUsd] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,6 +71,7 @@ export function PricingPanel() {
     setMarkup(String(pricing.data.markup));
     setFloor(String(pricing.data.minMarkup));
     setRounding(String(pricing.data.mwkRounding));
+    setCardUsd(pricing.data.cardUsdEnabled);
   }, [pricing.data]);
 
   const refresh = () => Promise.all([
@@ -77,7 +80,7 @@ export function PricingPanel() {
   ]);
 
   const saveMutation = useMutation({
-    mutationFn: () => save({ data: { mwkPerUsd: Number(rate), markup: Number(markup), minMarkup: Number(floor), mwkRounding: Number(rounding) } }),
+    mutationFn: () => save({ data: { mwkPerUsd: Number(rate), markup: Number(markup), minMarkup: Number(floor), mwkRounding: Number(rounding), cardUsdEnabled: cardUsd } }),
     onSuccess: (result) => { setMessage(result.repriced ? `Saved. ${result.repriced} plans repriced.` : "Saved. New prices are live."); void refresh(); },
     onError: (error) => setMessage(error instanceof Error ? error.message : "Unable to save"),
   });
@@ -121,7 +124,15 @@ export function PricingPanel() {
         <div className="space-y-2"><Label htmlFor="pricing-floor">Floor (minimum markup)</Label><Input id="pricing-floor" type="number" min="1" max="3" step="0.01" value={floor} onChange={(e) => setFloor(e.target.value)} /></div>
         <div className="space-y-2"><Label htmlFor="pricing-rounding">Round prices up to (MWK)</Label><Input id="pricing-rounding" type="number" min="1" max="1000" step="1" value={rounding} onChange={(e) => setRounding(e.target.value)} /></div>
       </div>
-      {example !== null && <p className="mt-3 text-xs text-muted-foreground">Example: a plan costing us $10.00 sells for MWK {example.toLocaleString("en")}.</p>}
+      {example !== null && <p className="mt-3 text-xs text-muted-foreground">Example: a plan costing us $10.00 sells for MWK {example.toLocaleString("en")}{Number(markup) > 0 ? ` (or $${(10 * Number(markup)).toFixed(2)} by international card, if enabled)` : ""}.</p>}
+
+      <div className="mt-5 rounded-md border border-border p-4">
+        <Label className="flex items-center gap-3 font-bold"><Switch checked={cardUsd} onCheckedChange={setCardUsd} />Let international Visa/Mastercard pay in US dollars</Label>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          Mobile money is always charged in kwacha. When this is on, checkout also offers card payment in USD at wholesale × markup.
+          Only turn it on once PayChangu confirms USD card payments settle to you in US dollars. If they convert to kwacha at the official rate, every USD sale loses money.
+        </p>
+      </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-border pt-5">
         <Button size="sm" onClick={() => saveMutation.mutate()} disabled={busy}><Save />Save pricing</Button>

@@ -309,6 +309,7 @@ export type Database = {
       }
       pricing_settings: {
         Row: {
+          card_usd_enabled: boolean
           id: number
           markup: number
           min_markup: number
@@ -319,6 +320,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          card_usd_enabled?: boolean
           id?: number
           markup?: number
           min_markup?: number
@@ -329,6 +331,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          card_usd_enabled?: boolean
           id?: number
           markup?: number
           min_markup?: number

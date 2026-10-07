@@ -8,6 +8,7 @@ export type AdminPricing = {
   markup: number;
   minMarkup: number;
   mwkRounding: number;
+  cardUsdEnabled: boolean;
   rateUpdatedAt: string;
   updatedAt: string;
   updatedBy: string | null;
@@ -28,6 +29,7 @@ export const getAdminPricing = createServerFn({ method: "GET" })
       markup: Number(data.markup),
       minMarkup: Number(data.min_markup),
       mwkRounding: Number(data.mwk_rounding),
+      cardUsdEnabled: data.card_usd_enabled === true,
       rateUpdatedAt: data.rate_updated_at,
       updatedAt: data.updated_at,
       updatedBy: data.updated_by,
@@ -42,6 +44,7 @@ const pricingUpdate = z.object({
   markup: z.number().min(1).max(3),
   minMarkup: z.number().min(1).max(3),
   mwkRounding: z.number().int().min(1).max(1000),
+  cardUsdEnabled: z.boolean(),
 }).refine((value) => value.markup >= value.minMarkup, { message: "Markup must be at least the floor", path: ["markup"] });
 
 export const updateAdminPricing = createServerFn({ method: "POST" })
@@ -58,6 +61,7 @@ export const updateAdminPricing = createServerFn({ method: "POST" })
       markup: data.markup,
       min_markup: data.minMarkup,
       mwk_rounding: data.mwkRounding,
+      card_usd_enabled: data.cardUsdEnabled,
       updated_at: now,
       updated_by: email,
       ...(rateChanged ? { rate_updated_at: now } : {}),
