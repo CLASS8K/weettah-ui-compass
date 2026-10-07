@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 const APPROVED_ADMINS = new Set(["admin@weettah.com", "frankntaukira@gmail.com"]);
 
@@ -164,9 +165,14 @@ export const listAdminPlans = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await assertAdmin(context);
-    const { data, error } = await supabaseAdmin.from("plans").select("*").order("display_order");
-    if (error) throw new Error("Unable to load packages");
-    return data;
+    // Page through: Supabase caps each response at 1,000 rows.
+    const rows: Database["public"]["Tables"]["plans"]["Row"][] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await supabaseAdmin.from("plans").select("*").order("display_order").order("id").range(from, from + 999);
+      if (error) throw new Error("Unable to load packages");
+      rows.push(...(data ?? []));
+      if (!data || data.length < 1000) return rows;
+    }
   });
 
 const planUpdate = z.object({

@@ -52,13 +52,26 @@ async function loadActivePlans(): Promise<PublicPlan[]> {
     process.env["SUPABASE_PUBLISHABLE_KEY"]!,
     { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
   );
-  const { data, error } = await supabasePublic
-    .from("plans")
-    .select("id, country, flag, region, data_allowance, validity_days, amount_minor, currency, is_popular")
-    .eq("is_active", true)
-    .order("display_order");
-  if (error) throw new Error("Unable to load plans");
-  return (data ?? []).map((plan) => {
+  // Supabase returns at most 1,000 rows per request, and the catalogue is larger,
+  // so read it in pages. Without this, 61 destinations never appeared on the site.
+  const PAGE = 1000;
+  const data: {
+    id: string; country: string; flag: string; region: string; data_allowance: string;
+    validity_days: number; amount_minor: number; currency: string; is_popular: boolean;
+  }[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data: page, error } = await supabasePublic
+      .from("plans")
+      .select("id, country, flag, region, data_allowance, validity_days, amount_minor, currency, is_popular")
+      .eq("is_active", true)
+      .order("display_order")
+      .order("id")
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error("Unable to load plans");
+    data.push(...(page ?? []));
+    if (!page || page.length < PAGE) break;
+  }
+  return data.map((plan) => {
     const priceMwk = pricing && plan.currency === "USD" ? toMwk(plan.amount_minor, pricing) : null;
     const priceUsd = pricing?.cardUsdEnabled && priceMwk !== null ? formatPrice(plan.amount_minor, "USD") : null;
     return {
