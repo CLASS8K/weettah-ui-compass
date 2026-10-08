@@ -5,6 +5,7 @@
   "buildCommand": "bun run build",
   "outputDirectory": ".vercel/output",
   "crons": [
-    { "path": "/api/public/cron/sync-prices", "schedule": "15 0 * * *" }
+    { "path": "/api/public/cron/sync-prices", "schedule": "15 0 * * *" },
+    { "path": "/api/public/cron/reconcile-payments", "schedule": "45 3 * * *" }
   ]
 }

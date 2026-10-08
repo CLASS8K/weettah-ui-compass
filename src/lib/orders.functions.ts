@@ -28,7 +28,7 @@ export const lookupOrder = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin
       .from("payment_orders")
       .select(
-        "merchant_reference, country, data_allowance, validity_days, amount_minor, currency, created_at, status, fulfillment_status, activation_token, customer_email",
+        "merchant_reference, country, data_allowance, validity_days, amount_minor, currency, created_at, status, fulfillment_status, activation_token, customer_email, payment_method",
       )
       .eq("merchant_reference", data.reference)
       .maybeSingle();
@@ -37,6 +37,25 @@ export const lookupOrder = createServerFn({ method: "POST" })
     // Exact, case-insensitive email match — never ILIKE, so wildcard
     // characters in user input carry no special meaning.
     if (!row || row.customer_email.trim().toLowerCase() !== data.email.toLowerCase()) return { found: false };
+
+    // Customer paid but closed the tab before confirmation (common with mobile
+    // money). Re-verify with PayChangu now instead of showing "Awaiting payment".
+    if (row.status === "pending" && row.payment_method === "paychangu") {
+      try {
+        const { confirmPaychanguOrder } = await import("./payment-confirmation.server");
+        const result = await confirmPaychanguOrder(row.merchant_reference);
+        if (result.state !== "pending") {
+          const { data: refreshed } = await supabaseAdmin
+            .from("payment_orders")
+            .select("status, fulfillment_status, activation_token")
+            .eq("merchant_reference", row.merchant_reference)
+            .maybeSingle();
+          if (refreshed) Object.assign(row, refreshed);
+        }
+      } catch (confirmError) {
+        console.error("Order lookup could not re-verify payment", confirmError);
+      }
+    }
 
     const paid = row.status === "completed";
     const esimStatus = !paid

@@ -1,4 +1,4 @@
-import { decodeCharge, verifyTransaction, type PaymentDetails } from "./paychangu.server";
+import { decodeCharge, isProductionDeploy, verifyTransaction, type PaymentDetails } from "./paychangu.server";
 
 export type ConfirmationResult =
   | { state: "paid"; activationToken: string }
@@ -36,6 +36,17 @@ export async function confirmPaychanguOrder(reference: string): Promise<Confirma
   }
   if (transaction.status !== "success") return { state: "pending" };
 
+  // A test-mode payment on the live site means a test key is configured in
+  // Production. Never buy a real eSIM for it; hold the order for a human.
+  if (isProductionDeploy() && transaction.mode === "test") {
+    console.error("PayChangu returned a TEST-mode payment on production; check PAYCHANGU_SECRET_KEY", reference);
+    await supabaseAdmin.from("payment_orders").update({
+      status: "invalid",
+      fulfillment_error: "Test-mode payment received on production. No eSIM issued.",
+    }).eq("merchant_reference", reference).eq("status", "pending");
+    return { state: "failed" };
+  }
+
   const amountOk = Number.isFinite(transaction.amount) && transaction.amount + 0.001 >= expected.amount;
   if (transaction.txRef !== reference || transaction.currency !== expected.currency || !amountOk) {
     // Paid, but not what we asked for. Hold for a human instead of releasing an eSIM.
@@ -62,6 +73,38 @@ export async function confirmPaychanguOrder(reference: string): Promise<Confirma
 
   await provisionQuietly({ ...order, status: "completed" });
   return { state: "paid", activationToken: order.activation_token };
+}
+
+// Safety net for payments whose webhook never matched and whose customer closed
+// the tab before the return page confirmed (common with mobile money).
+// Re-verifies recent pending PayChangu orders; idempotent like the above.
+export async function reconcilePendingPaychanguOrders({ maxAgeHours = 48, limit = 50 } = {}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const since = new Date(Date.now() - maxAgeHours * 3600_000).toISOString();
+  const { data: orders, error } = await supabaseAdmin
+    .from("payment_orders")
+    .select("merchant_reference")
+    .eq("payment_method", "paychangu")
+    .eq("status", "pending")
+    .gte("created_at", since)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+  if (error) throw new Error("Unable to load pending orders");
+
+  const summary = { checked: 0, paid: 0, failed: 0, pending: 0, errors: 0 };
+  for (const { merchant_reference } of orders ?? []) {
+    summary.checked += 1;
+    try {
+      const result = await confirmPaychanguOrder(merchant_reference);
+      if (result.state === "paid") summary.paid += 1;
+      else if (result.state === "failed") summary.failed += 1;
+      else summary.pending += 1;
+    } catch (err) {
+      summary.errors += 1;
+      console.error("Reconciliation failed for", merchant_reference, err);
+    }
+  }
+  return summary;
 }
 
 async function provisionQuietly(order: {

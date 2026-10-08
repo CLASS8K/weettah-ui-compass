@@ -124,8 +124,16 @@ export async function initiateCheckout(input: InitiateInput): Promise<string> {
   return checkoutUrl;
 }
 
+// True only on the live Vercel production deployment. Preview and local builds
+// must never be able to release a real eSIM for a test-mode payment.
+export function isProductionDeploy() {
+  return process.env["VERCEL_ENV"] === "production";
+}
+
 export type VerifiedTransaction = {
   status: string;
+  // "live" or "test" as reported by PayChangu; null if the field is absent.
+  mode: string | null;
   txRef: string;
   amount: number;
   currency: string;
@@ -170,6 +178,7 @@ export async function verifyTransaction(txRef: string): Promise<VerifiedTransact
         status?: string;
         data?: {
           status?: string;
+          mode?: string;
           tx_ref?: string;
           amount?: number | string;
           currency?: string;
@@ -183,6 +192,7 @@ export async function verifyTransaction(txRef: string): Promise<VerifiedTransact
   if (!data) return null;
   return {
     status: result?.status === "success" ? String(data.status ?? "") : "unknown",
+    mode: data.mode ? String(data.mode).toLowerCase() : null,
     txRef: String(data.tx_ref ?? ""),
     amount: Number(data.amount),
     currency: String(data.currency ?? ""),
